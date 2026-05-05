@@ -24,6 +24,8 @@ type SearchContentOptions struct {
 	Format              string
 	InteractiveTerminal bool
 	Output              io.Writer
+	Page                int
+	PageSize            int
 }
 
 type searchContentJSONMatch struct {
@@ -32,6 +34,20 @@ type searchContentJSONMatch struct {
 	Content   string `json:"content"`
 	MatchType string `json:"match_type"`
 }
+
+type searchContentPaginatedJSON struct {
+	Page            int                      `json:"page"`
+	PageSize        int                      `json:"page_size"`
+	TotalResults    int                      `json:"total_results"`
+	ReturnedResults int                      `json:"returned_results"`
+	HasMore         bool                     `json:"has_more"`
+	Results         []searchContentJSONMatch `json:"results"`
+}
+
+const (
+	defaultPageSize = 25
+	maxPageSize     = 100
+)
 
 // SearchNotesContent preserves backward-compatible interactive behavior.
 func SearchNotesContent(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidian.UriManager, fuzzyFinder obsidian.FuzzyFinderManager, searchTerm string, useEditor bool) error {
@@ -84,7 +100,7 @@ func SearchNotesContentWithOptions(vault obsidian.VaultManager, note obsidian.No
 	}
 
 	if nonInteractiveMode {
-		return printMatches(matches, searchTerm, format, output)
+		return printMatches(matches, searchTerm, format, output, options)
 	}
 
 	if len(matches) == 0 {
@@ -134,6 +150,9 @@ func shouldUseNonInteractiveMode(options SearchContentOptions, format string) bo
 	if format == searchContentFormatJSON {
 		return true
 	}
+	if isPaginationRequested(options) {
+		return true
+	}
 	return !options.InteractiveTerminal
 }
 
@@ -151,31 +170,113 @@ func normalizeSearchContentFormat(format string) (string, error) {
 	}
 }
 
-func printMatches(matches []obsidian.NoteMatch, searchTerm string, format string, output io.Writer) error {
+type paginationResult struct {
+	items      []obsidian.NoteMatch
+	page       int
+	pageSize   int
+	totalPages int
+	hasMore    bool
+}
+
+func paginateMatches(matches []obsidian.NoteMatch, options SearchContentOptions) paginationResult {
+	page := options.Page
+	pageSize := options.PageSize
+
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = defaultPageSize
+	}
+	if pageSize > maxPageSize {
+		pageSize = maxPageSize
+	}
+
+	total := len(matches)
+	totalPages := (total + pageSize - 1) / pageSize
+	if totalPages == 0 {
+		totalPages = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
+
+	start := (page - 1) * pageSize
+	if start >= total {
+		return paginationResult{page: page, pageSize: pageSize, totalPages: totalPages}
+	}
+	end := start + pageSize
+	if end > total {
+		end = total
+	}
+	return paginationResult{
+		items:      matches[start:end],
+		page:       page,
+		pageSize:   pageSize,
+		totalPages: totalPages,
+		hasMore:    end < total,
+	}
+}
+
+func isPaginationRequested(options SearchContentOptions) bool {
+	return options.Page > 0 || options.PageSize > 0
+}
+
+func toJSONMatches(matches []obsidian.NoteMatch) []searchContentJSONMatch {
+	result := make([]searchContentJSONMatch, 0, len(matches))
+	for _, match := range matches {
+		result = append(result, searchContentJSONMatch{
+			File:      match.FilePath,
+			Line:      match.LineNumber,
+			Content:   match.MatchLine,
+			MatchType: getMatchType(match),
+		})
+	}
+	return result
+}
+
+func printMatches(matches []obsidian.NoteMatch, searchTerm string, format string, output io.Writer, options SearchContentOptions) error {
+	paginate := isPaginationRequested(options)
+
 	switch format {
 	case searchContentFormatText:
 		if len(matches) == 0 {
 			fmt.Fprintf(os.Stderr, "No notes found containing '%s'\n", searchTerm)
 			return nil
 		}
+
+		if paginate {
+			pg := paginateMatches(matches, options)
+			for _, match := range pg.items {
+				_, _ = fmt.Fprintln(output, formatMatchForList(match))
+			}
+			_, _ = fmt.Fprintf(output, "-- Page %d/%d (%d of %d results) --\n", pg.page, pg.totalPages, len(pg.items), len(matches))
+			return nil
+		}
+
 		for _, match := range matches {
 			_, _ = fmt.Fprintln(output, formatMatchForList(match))
 		}
 		return nil
 	case searchContentFormatJSON:
-		result := make([]searchContentJSONMatch, 0, len(matches))
-		for _, match := range matches {
-			result = append(result, searchContentJSONMatch{
-				File:      match.FilePath,
-				Line:      match.LineNumber,
-				Content:   match.MatchLine,
-				MatchType: getMatchType(match),
+		if paginate {
+			pg := paginateMatches(matches, options)
+			result := toJSONMatches(pg.items)
+			encoder := json.NewEncoder(output)
+			encoder.SetEscapeHTML(false)
+			return encoder.Encode(searchContentPaginatedJSON{
+				Page:            pg.page,
+				PageSize:        pg.pageSize,
+				TotalResults:    len(matches),
+				ReturnedResults: len(result),
+				HasMore:         pg.hasMore,
+				Results:         result,
 			})
 		}
 
 		encoder := json.NewEncoder(output)
 		encoder.SetEscapeHTML(false)
-		return encoder.Encode(result)
+		return encoder.Encode(toJSONMatches(matches))
 	default:
 		return fmt.Errorf("unsupported output format: %s", format)
 	}
