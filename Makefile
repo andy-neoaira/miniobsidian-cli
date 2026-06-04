@@ -1,12 +1,14 @@
 BINARY_NAME=obs-cli
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+LDFLAGS := -s -w -X github.com/andy-neoaira/miniobsidian-cli/cmd.Version=$(VERSION)
 
 install-hooks:
 	git config core.hooksPath .githooks
 
 build-all:
-	GOOS=darwin GOARCH=amd64 go build -o bin/darwin/${BINARY_NAME}
-	GOOS=linux GOARCH=amd64 go build -o bin/linux/${BINARY_NAME}
-	GOOS=windows GOARCH=amd64 go build -o bin/windows/${BINARY_NAME}.exe
+	GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/darwin/${BINARY_NAME}
+	GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/linux/${BINARY_NAME}
+	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/windows/${BINARY_NAME}.exe
 
 clean-all:
 	go clean

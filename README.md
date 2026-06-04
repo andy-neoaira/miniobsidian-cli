@@ -57,20 +57,22 @@ The easiest way to install is to download a pre-built binary from the [GitHub Re
 
 | OS | Architecture | Release Asset Name |
 |---|---|---|
-| macOS (Intel) | amd64 | `obs-cli_Darwin_x86_64.tar.gz` |
-| macOS (Apple Silicon) | arm64 | `obs-cli_Darwin_arm64.tar.gz` |
-| Linux | amd64 | `obs-cli_Linux_x86_64.tar.gz` |
-| Linux | arm64 | `obs-cli_Linux_arm64.tar.gz` |
-| Windows | amd64 | `obs-cli_Windows_x86_64.zip` |
+| macOS (Universal) | amd64 + arm64 | `obs-cli_0.0.1_darwin_all.tar.gz` |
+| Linux | amd64 | `obs-cli_0.0.1_linux_amd64.tar.gz` |
+| Linux | arm64 | `obs-cli_0.0.1_linux_arm64.tar.gz` |
+| Windows | amd64 | `obs-cli_0.0.1_windows_amd64.tar.gz` |
+| Windows | arm64 | `obs-cli_0.0.1_windows_arm64.tar.gz` |
 
 **One-line install (macOS / Linux):**
 
 ```bash
 # Download latest release for your platform
-curl -sL https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/obs-cli_$(uname -s)_$(uname -m).tar.gz | tar xz
+curl -sL -o obs-cli.tar.gz "https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/obs-cli_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m).tar.gz"
+tar xzf obs-cli.tar.gz
 
 # Move to a directory in your PATH
-sudo mv obs-cli /usr/local/bin/
+mkdir -p ~/bin
+mv obs-cli ~/bin/
 ```
 
 > **Note:** On Apple Silicon Macs, `uname -m` prints `arm64`. On Intel Macs, it prints `x86_64`.
@@ -79,10 +81,10 @@ sudo mv obs-cli /usr/local/bin/
 
 ```powershell
 # Download latest release
-Invoke-WebRequest -Uri "https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/obs-cli_Windows_x86_64.zip" -OutFile "obs-cli.zip"
+Invoke-WebRequest -Uri "https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/miniobsidian-cli_0.0.1_windows_amd64.tar.gz" -OutFile "obs-cli.tar.gz"
 
 # Extract
-Expand-Archive -Path "obs-cli.zip" -DestinationPath "."
+tar xzf obs-cli.tar.gz
 
 # Add to PATH (optional)
 $env:PATH += ";$PWD"

@@ -7,12 +7,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version 是 CLI 的版本号。
+// 本地开发时默认为 "dev"，发布时由 GoReleaser / Makefile 通过 ldflags 注入实际版本。
+var Version = "dev"
+
 // rootCmd 是 obs-cli 的根命令定义。
 // Cobra 框架会根据这里的定义自动生成帮助信息、版本号和子命令树。
 var rootCmd = &cobra.Command{
 	Use:     "obs-cli",
 	Short:   "Interact with Obsidian vaults from the terminal",
-	Version: "v0.3.6",
+	Version: Version,
 	Long:    "Interact with Obsidian vaults from the terminal",
 }
 
