@@ -2,20 +2,23 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/Yakitrak/notesmd-cli/pkg/actions"
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"log"
 
 	"github.com/spf13/cobra"
 )
 
+// includeMentions 控制是否在打印笔记内容后附加显示反向链接（mentions）。
 var includeMentions bool
 
+// printCmd 定义了 "print" 子命令，用于在终端中打印笔记的完整内容。
+// 别名 "p" 提供快捷输入方式。
 var printCmd = &cobra.Command{
 	Use:     "print",
 	Aliases: []string{"p"},
 	Short:   "Print contents of note",
-	Args:    cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(1), // 必须提供 1 个参数：笔记名称或路径
 	Run: func(cmd *cobra.Command, args []string) {
 		noteName := args[0]
 		vault := obsidian.Vault{Name: vaultName}

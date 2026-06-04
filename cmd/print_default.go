@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
 )
 
+// printDefaultDeprecatedCmd 是已弃用的 "print-default" 命令。
+// 建议用户使用 "list-vaults --default" 替代。
 var printDefaultDeprecatedCmd = &cobra.Command{
 	Use:        "print-default",
 	Aliases:    []string{"pd"},
@@ -27,6 +29,7 @@ var printDefaultDeprecatedCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		// --path-only 模式下只输出路径，方便脚本调用
 		if pathOnly {
 			fmt.Print(path)
 			return

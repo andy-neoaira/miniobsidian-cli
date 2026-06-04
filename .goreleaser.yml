@@ -1,7 +1,12 @@
 version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
 builds:
-  - id: notesmd-cli
-    binary: notesmd-cli
+  - id: obs-cli
+    binary: obs-cli
     goos:
       - darwin
       - linux
@@ -14,51 +19,42 @@ builds:
     flags:
       - -mod=vendor
 
-release:
-  prerelease: auto
-
+# macOS Universal Binary（将 amd64 + arm64 合并为一个通用二进制）
 universal_binaries:
   - replace: true
 
-brews:
-  - name: notesmd-cli
-    homepage: https://github.com/Yakitrak/notesmd-cli
-    repository:
-      owner: Yakitrak
-      name: homebrew-yakitrak
-    commit_author:
-      name: kartikayjainwal
-      email: kartikayjainwal@gmail.com
+release:
+  prerelease: auto
+  # 自动生成 Release 说明，按 commit 分组
+  mode: replace
+  footer: |
+    ## Installation
 
-scoops:
-  - name: notesmd-cli
-    homepage: https://github.com/Yakitrak/notesmd-cli
-    repository:
-      owner: Yakitrak
-      name: scoop-yakitrak
-    commit_author:
-      name: kartikayjainwal
-      email: kartikayjainwal@gmail.com
+    Download the appropriate archive for your platform from the assets below,
+    extract it, and place the `obs-cli` binary in a directory on your `PATH`.
 
-aurs:
-  - name: notesmd-cli-bin
-    homepage: https://github.com/Yakitrak/notesmd-cli
-    description: Interact with Obsidian vaults from the terminal. Open, search, create, update and move notes!
-    maintainers:
-      - 'Kartikay Jainwal <kartikayjainwal at gmail dot com>'
-      - 'Jonathan Neidel <aur at jneidel dot com>'
-    license: 'MIT'
-    private_key: '{{ .Env.AUR_KEY }}'
-    git_url: 'ssh://aur@aur.archlinux.org/notesmd-cli-bin.git'
-    package: |-
-      install -Dm755 "./notesmd-cli" "${pkgdir}/usr/bin/notesmd-cli"
-      ./notesmd-cli completion bash >notesmd-cli.bash
-      ./notesmd-cli completion fish >notesmd-cli.fish
-      ./notesmd-cli completion zsh >_notesmd-cli
-      install -Dm644 notesmd-cli.bash "${pkgdir}/usr/share/bash-completion/completions/notesmd-cli"
-      install -Dm644 notesmd-cli.fish "${pkgdir}/usr/share/fish/completions/notesmd-cli.fish"
-      install -Dm644 _notesmd-cli "${pkgdir}/usr/share/zsh/site-functions/_notesmd-cli"
+    For more details, see the [Installation Guide](https://github.com/andy-neoaira/miniobsidian-cli#install).
 
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore(deps)"
+  groups:
+    - title: Features
+      regexp: "^feat"
+      order: 0
+    - title: Bug Fixes
+      regexp: "^fix"
+      order: 1
+    - title: Improvements
+      regexp: "^improve|^refactor|^perf"
+      order: 2
+    - title: Others
+      order: 999
 
 checksum:
   name_template: "checksums.txt"

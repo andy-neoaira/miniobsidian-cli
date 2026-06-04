@@ -3,7 +3,8 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
 
 permissions:
   contents: read
@@ -47,8 +48,6 @@ jobs:
           version: "~> v2"
           args: release --clean
         env:
-          # PUBLISHER_TOKEN (PAT) is used instead of GITHUB_TOKEN so that the release
-          # can trigger downstream workflows (e.g. Homebrew tap updates). The built-in
-          # GITHUB_TOKEN cannot trigger other workflow runs.
-          GITHUB_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
-          AUR_KEY: ${{ secrets.AUR_KEY }}
+          # 使用 GITHUB_TOKEN 自动发布到当前仓库的 GitHub Releases
+          # 无需额外配置，fork 仓库自带权限
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

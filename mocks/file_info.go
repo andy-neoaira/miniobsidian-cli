@@ -5,9 +5,11 @@ import (
 	"time"
 )
 
+// MockFileInfo 是 os.FileInfo 接口的 Mock 实现，用于单元测试。
+// 可以控制文件名、是否是目录等属性。
 type MockFileInfo struct {
-	FileName    string
-	IsDirectory bool
+	FileName    string // 文件名
+	IsDirectory bool   // 是否是目录
 }
 
 func (fi *MockFileInfo) Name() string {

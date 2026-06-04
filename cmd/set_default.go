@@ -5,20 +5,24 @@ import (
 	"log"
 	"os"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
 )
 
+// runSetDefaultVault 是 set-default-vault 和 set-default（已弃用）命令的公共执行逻辑。
+// 它可以同时设置默认 vault 名称和默认打开方式（obsidian 或 editor）。
 func runSetDefaultVault(cmd *cobra.Command, args []string) {
 	openType, err := cmd.Flags().GetString("open-type")
 	if err != nil {
 		log.Fatalf("Failed to parse --open-type flag: %v", err)
 	}
 
+	// 参数校验：至少要提供 vault 名称或 --open-type 其中之一
 	if len(args) == 0 && openType == "" {
 		log.Fatal("Please provide a vault name or use --open-type to set the default open type")
 	}
 
+	// 设置默认 vault 名称
 	if len(args) > 0 {
 		name, err := obsidian.ResolveVaultName(args[0])
 		if err != nil {
@@ -31,14 +35,14 @@ func runSetDefaultVault(cmd *cobra.Command, args []string) {
 		fmt.Println("Default vault set to:", name)
 		path, err := v.Path()
 		if err != nil {
-			// Path resolution is best-effort: the name is saved; Obsidian's
-			// config file may not be present or may not contain this vault yet.
+			// 路径解析是尽力而为：名称已保存，但 Obsidian 的配置文件中可能还没有该 vault
 			fmt.Fprintln(os.Stderr, "Note: could not resolve vault path:", err)
 		} else {
 			fmt.Println("Default vault path set to:", path)
 		}
 	}
 
+	// 设置默认打开方式
 	if openType != "" {
 		if openType != "obsidian" && openType != "editor" {
 			log.Fatalf("Invalid open type %q: must be 'obsidian' or 'editor'", openType)
@@ -51,14 +55,16 @@ func runSetDefaultVault(cmd *cobra.Command, args []string) {
 	}
 }
 
+// setDefaultVaultCmd 是正式的 "set-default-vault" 命令。
 var setDefaultVaultCmd = &cobra.Command{
 	Use:     "set-default-vault",
 	Aliases: []string{"sd"},
 	Short:   "Sets default vault and/or open type",
-	Args:    cobra.RangeArgs(0, 1),
+	Args:    cobra.RangeArgs(0, 1), // 接收 0 或 1 个参数
 	Run:     runSetDefaultVault,
 }
 
+// setDefaultDeprecatedCmd 是已弃用的 "set-default" 命令，保留以兼容旧版本用户。
 var setDefaultDeprecatedCmd = &cobra.Command{
 	Use:        "set-default",
 	Short:      "Sets default vault and/or open type (deprecated: use set-default-vault)",

@@ -1,17 +1,19 @@
 package mocks
 
-import "github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+import "github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 
+// MockNoteManager 是 NoteManager 接口的 Mock 实现，用于单元测试。
+// 通过设置各个字段的值，可以控制 Mock 对象的行为（返回指定值或模拟错误）。
 type MockNoteManager struct {
-	DeleteErr           error
-	MoveErr             error
-	UpdateLinksError    error
-	GetContentsError    error
-	SetContentsError    error
-	FindBacklinksErr    error
-	FindBacklinksResult []obsidian.NoteMatch
-	NoMatches           bool
-	Contents            string
+	DeleteErr           error                // 模拟 Delete() 返回的错误
+	MoveErr             error                // 模拟 Move() 返回的错误
+	UpdateLinksError    error                // 模拟 UpdateLinks() 返回的错误
+	GetContentsError    error                // 模拟 GetContents() 返回的错误
+	SetContentsError    error                // 模拟 SetContents() 返回的错误
+	FindBacklinksErr    error                // 模拟 FindBacklinks() 返回的错误
+	FindBacklinksResult []obsidian.NoteMatch // FindBacklinks() 返回的自定义结果
+	NoMatches           bool                 // 是否返回空结果
+	Contents            string               // GetContents() 返回的自定义内容
 }
 
 func (m *MockNoteManager) Delete(string) error {

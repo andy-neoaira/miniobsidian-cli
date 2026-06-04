@@ -8,9 +8,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Yakitrak/notesmd-cli/mocks"
-	"github.com/Yakitrak/notesmd-cli/pkg/actions"
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/mocks"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,4 +1,4 @@
-module github.com/Yakitrak/notesmd-cli
+module github.com/andy-neoaira/miniobsidian-cli
 
 go 1.25.8
 

@@ -1,19 +1,23 @@
 package cmd
 
 import (
-	"github.com/Yakitrak/notesmd-cli/pkg/actions"
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"log"
 
 	"github.com/spf13/cobra"
 )
 
+// shouldOpen 控制移动后是否自动打开新笔记（多个命令共享此变量）。
 var shouldOpen bool
+
+// moveCmd 定义了 "move" 子命令，用于移动或重命名笔记，
+// 并自动更新 vault 中其他笔记指向该笔记的链接。
 var moveCmd = &cobra.Command{
 	Use:     "move",
 	Aliases: []string{"m"},
 	Short:   "Move or rename note in vault and updated corresponding links",
-	Args:    cobra.ExactArgs(2),
+	Args:    cobra.ExactArgs(2), // 需要 2 个参数：原路径 和 新路径
 	Run: func(cmd *cobra.Command, args []string) {
 		currentName := args[0]
 		newName := args[1]

@@ -9,11 +9,13 @@ import (
 	"strings"
 )
 
+// VaultInfo 保存单个 vault 的名称和路径信息。
 type VaultInfo struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
+	Name string `json:"name"` // vault 名称（目录 basename）
+	Path string `json:"path"` // vault 的绝对路径
 }
 
+// ListVaults 返回所有已注册 Obsidian vault 的列表。
 func ListVaults() ([]VaultInfo, error) {
 	obsidianConfigFile, err := ObsidianConfigFile()
 	if err != nil {
@@ -45,8 +47,8 @@ func ListVaults() ([]VaultInfo, error) {
 	return vaults, nil
 }
 
-// ResolveVaultName validates user input against registered Obsidian vaults.
-// It accepts a vault name or a path and resolves it to the correct vault name.
+// ResolveVaultName 将用户输入的名称或路径解析为已注册的 vault 名称。
+// 如果输入的是名称且匹配到多个 vault，会返回歧义错误并提示用户使用完整路径。
 func ResolveVaultName(input string) (string, error) {
 	vaults, err := ListVaults()
 	if err != nil {
@@ -57,7 +59,7 @@ func ResolveVaultName(input string) (string, error) {
 		return "", errors.New("no vaults registered in Obsidian. Please create a vault in Obsidian first")
 	}
 
-	// Collect all name matches
+	// 先按名称精确匹配
 	var nameMatches []VaultInfo
 	for _, v := range vaults {
 		if v.Name == input {
@@ -78,7 +80,7 @@ func ResolveVaultName(input string) (string, error) {
 		)
 	}
 
-	// Exact path match (user passed a full path)
+	// 再尝试完整路径匹配（用户可能直接输入了路径）
 	cleanInput := filepath.Clean(input)
 	for _, v := range vaults {
 		if filepath.Clean(v.Path) == cleanInput {
@@ -86,7 +88,7 @@ func ResolveVaultName(input string) (string, error) {
 		}
 	}
 
-	// Build available vault list for the error message
+	// 未找到，返回友好的错误信息并列出所有可用 vault
 	var available []string
 	for _, v := range vaults {
 		available = append(available, fmt.Sprintf("  %s\t(%s)", v.Name, v.Path))

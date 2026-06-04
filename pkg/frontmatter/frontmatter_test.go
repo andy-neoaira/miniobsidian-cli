@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/frontmatter"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/frontmatter"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,14 +6,18 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 )
 
+// DailyParams 定义了 daily 命令所需的业务参数。
 type DailyParams struct {
-	Content   string
-	UseEditor bool
+	Content   string // 要追加到日记的内容
+	UseEditor bool   // 是否使用编辑器打开
 }
 
+// DailyNote 是 "daily" 命令的业务核心。
+// 流程：读取 Obsidian Daily Notes 插件配置 → 按格式生成今日日期作为文件名 →
+// 如有模板则读取模板 → 写入/追加内容 → 打开笔记。
 func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params DailyParams) error {
 	vaultName, err := vault.DefaultName()
 	if err != nil {
@@ -25,30 +29,33 @@ func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Dail
 		return err
 	}
 
+	// 读取 Obsidian 的 Daily Notes 插件配置（文件夹、日期格式、模板）
 	config := obsidian.ReadDailyNotesConfig(vaultPath)
 
-	// Format today's date using the configured Moment.js format.
+	// 使用配置的 Moment.js 日期格式生成今日日期字符串
 	format := config.Format
 	if format == "" {
-		format = "YYYY-MM-DD"
+		format = "YYYY-MM-DD" // 默认格式，与 Obsidian 官方插件一致
 	}
 	noteName := time.Now().Format(obsidian.MomentToGoFormat(format))
 
-	// Prepend configured daily notes folder.
+	// 如果配置了专门的日记文件夹，将文件名放在该文件夹下
 	if config.Folder != "" {
 		noteName = config.Folder + "/" + noteName
 	}
 
+	// 校验并解析最终路径
 	notePath, err := obsidian.ValidatePath(vaultPath, obsidian.AddMdSuffix(noteName))
 	if err != nil {
 		return err
 	}
 
+	// 创建日记所在目录（如果不存在）
 	if err := os.MkdirAll(filepath.Dir(notePath), 0755); err != nil {
 		return fmt.Errorf("failed to create daily note directory: %w", err)
 	}
 
-	// Read template content if configured.
+	// 如果配置了模板，尝试读取模板内容
 	templateContent := ""
 	if config.Template != "" {
 		templatePath := filepath.Join(vaultPath, obsidian.AddMdSuffix(config.Template))
@@ -59,23 +66,24 @@ func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Dail
 
 	normalizedContent := NormalizeContent(params.Content)
 
+	// 检查日记文件是否已存在
 	_, statErr := os.Stat(notePath)
 	fileExists := statErr == nil
 
 	if fileExists && normalizedContent != "" {
-		// Append user content to existing daily note.
+		// 日记已存在且有新内容：追加到末尾
 		if err := WriteNoteFile(notePath, normalizedContent, true, false); err != nil {
 			return err
 		}
 	} else if !fileExists {
-		// Create new daily note with template + content.
+		// 日记不存在：创建新文件，内容为模板 + 用户输入
 		newContent := templateContent + normalizedContent
 		if err := WriteNoteFile(notePath, newContent, false, false); err != nil {
 			return err
 		}
 	}
 
-	// Open the note.
+	// 打开日记（编辑器或 Obsidian）
 	if params.UseEditor {
 		return obsidian.OpenInEditor(notePath)
 	}

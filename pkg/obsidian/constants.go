@@ -1,5 +1,6 @@
 package obsidian
 
+// 项目中所有错误提示消息的常量定义，集中管理方便统一修改和国际化。
 const (
 	ExecuteUriError                    = "Failed to execute Obsidian URI"
 	NoteDoesNotExistError              = "Cannot find note in vault"

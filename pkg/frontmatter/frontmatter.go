@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	Delimiter               = "---"
+	Delimiter               = "---"                      // YAML frontmatter 的起止分隔符
 	NoFrontmatterError      = "note does not contain frontmatter"
 	InvalidFrontmatterError = "frontmatter contains invalid YAML"
 )
 
-// Parse extracts and parses frontmatter from note content.
-// Returns the frontmatter as a map, the body content, and any error.
+// Parse 从笔记内容中提取并解析 YAML frontmatter。
+// 返回 frontmatter 的 map 表示、正文内容、以及可能的错误。
 func Parse(content string) (map[string]interface{}, string, error) {
 	var fm map[string]interface{}
 	rest, err := frontmatter.Parse(strings.NewReader(content), &fm)
@@ -25,7 +25,7 @@ func Parse(content string) (map[string]interface{}, string, error) {
 	return fm, string(rest), nil
 }
 
-// Format converts a frontmatter map to a YAML string.
+// Format 将 frontmatter map 转换为 YAML 字符串。
 func Format(fm map[string]interface{}) (string, error) {
 	if len(fm) == 0 {
 		return "", nil
@@ -37,7 +37,7 @@ func Format(fm map[string]interface{}) (string, error) {
 	return string(data), nil
 }
 
-// HasFrontmatter checks if content starts with frontmatter delimiters.
+// HasFrontmatter 检查内容是否以 frontmatter 分隔符开头。
 func HasFrontmatter(content string) bool {
 	lines := strings.Split(content, "\n")
 	if len(lines) == 0 {
@@ -46,13 +46,13 @@ func HasFrontmatter(content string) bool {
 	return strings.TrimSpace(lines[0]) == Delimiter
 }
 
-// SetKey updates or adds a key in the frontmatter, returning the full updated content.
-// If no frontmatter exists, it creates new frontmatter with the key.
+// SetKey 更新或添加 frontmatter 中的指定 key，返回更新后的完整内容。
+// 如果笔记原本没有 frontmatter，会自动创建一个新的 frontmatter 块。
 func SetKey(content, key, value string) (string, error) {
 	parsedValue := parseValue(value)
 
 	if !HasFrontmatter(content) {
-		// Create new frontmatter
+		// 原笔记没有 frontmatter：新建一个 frontmatter 块并拼接到原内容前面
 		fm := map[string]interface{}{key: parsedValue}
 		fmStr, err := yaml.Marshal(fm)
 		if err != nil {
@@ -61,7 +61,7 @@ func SetKey(content, key, value string) (string, error) {
 		return Delimiter + "\n" + string(fmStr) + Delimiter + "\n" + content, nil
 	}
 
-	// Parse existing frontmatter
+	// 解析已有 frontmatter
 	fm, body, err := Parse(content)
 	if err != nil {
 		return "", err
@@ -71,10 +71,10 @@ func SetKey(content, key, value string) (string, error) {
 		fm = make(map[string]interface{})
 	}
 
-	// Update the key
+	// 更新 key
 	fm[key] = parsedValue
 
-	// Reconstruct content
+	// 重新组装内容
 	fmStr, err := yaml.Marshal(fm)
 	if err != nil {
 		return "", err
@@ -83,7 +83,7 @@ func SetKey(content, key, value string) (string, error) {
 	return Delimiter + "\n" + string(fmStr) + Delimiter + "\n" + body, nil
 }
 
-// DeleteKey removes a key from the frontmatter, returning the full updated content.
+// DeleteKey 从 frontmatter 中删除指定 key，返回更新后的完整内容。
 func DeleteKey(content, key string) (string, error) {
 	if !HasFrontmatter(content) {
 		return "", errors.New(NoFrontmatterError)
@@ -98,15 +98,15 @@ func DeleteKey(content, key string) (string, error) {
 		return "", errors.New(NoFrontmatterError)
 	}
 
-	// Delete the key
+	// 删除指定 key
 	delete(fm, key)
 
-	// If no keys left, return just the body
+	// 如果删除后 frontmatter 为空，直接返回正文（去掉开头可能的换行）
 	if len(fm) == 0 {
 		return strings.TrimPrefix(body, "\n"), nil
 	}
 
-	// Reconstruct content
+	// 重新组装内容
 	fmStr, err := yaml.Marshal(fm)
 	if err != nil {
 		return "", err
@@ -115,10 +115,10 @@ func DeleteKey(content, key string) (string, error) {
 	return Delimiter + "\n" + string(fmStr) + Delimiter + "\n" + body, nil
 }
 
-// parseValue attempts to parse the value into appropriate Go types.
-// Supports: booleans, arrays (comma-separated in brackets), strings.
+// parseValue 尝试将字符串值解析为合适的 Go 类型。
+// 支持布尔值、数组（方括号包裹的逗号分隔值）、字符串。
 func parseValue(value string) interface{} {
-	// Try boolean
+	// 尝试布尔值
 	if value == "true" {
 		return true
 	}
@@ -126,7 +126,7 @@ func parseValue(value string) interface{} {
 		return false
 	}
 
-	// Try array (comma-separated in brackets)
+	// 尝试数组（方括号包裹的逗号分隔值）
 	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
 		inner := value[1 : len(value)-1]
 		if inner == "" {
@@ -140,6 +140,6 @@ func parseValue(value string) interface{} {
 		return result
 	}
 
-	// Default to string
+	// 默认作为字符串返回
 	return value
 }

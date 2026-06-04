@@ -1,12 +1,14 @@
 package mocks
 
+// MockVaultOperator 是 VaultManager 接口的 Mock 实现，用于单元测试。
+// 通过设置各个字段的值，可以控制 Mock 对象的行为（返回指定值或模拟错误）。
 type MockVaultOperator struct {
-	DefaultNameErr error
-	PathError      error
-	Name           string
-	PathValue      string
-	OpenType       string
-	OpenTypeErr    error
+	DefaultNameErr error  // 模拟 DefaultName() 返回的错误
+	PathError      error  // 模拟 Path() 返回的错误
+	Name           string // DefaultName() 返回的 vault 名称
+	PathValue      string // Path() 返回的路径
+	OpenType       string // DefaultOpenType() 返回的打开方式
+	OpenTypeErr    error  // 模拟 DefaultOpenType() 返回的错误
 }
 
 func (m *MockVaultOperator) DefaultName() (string, error) {

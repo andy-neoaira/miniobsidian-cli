@@ -4,21 +4,22 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/frontmatter"
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/frontmatter"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 )
 
+// FrontmatterParams 定义了 frontmatter 命令所需的业务参数。
 type FrontmatterParams struct {
-	NoteName string
-	Print    bool
-	Edit     bool
-	Delete   bool
-	Key      string
-	Value    string
+	NoteName string // 笔记名称或路径
+	Print    bool   // 是否打印 frontmatter
+	Edit     bool   // 是否编辑某个 key
+	Delete   bool   // 是否删除某个 key
+	Key      string // 要操作的 key
+	Value    string // 编辑时的新值
 }
 
-// Frontmatter handles viewing and modifying note frontmatter.
-// Based on flags, it will print, edit, or delete frontmatter keys.
+// Frontmatter 是 "frontmatter" 命令的业务核心。
+// 根据 Print/Edit/Delete 标志分别处理笔记的 YAML frontmatter。
 func Frontmatter(vault obsidian.VaultManager, note obsidian.NoteManager, params FrontmatterParams) (string, error) {
 	_, err := vault.DefaultName()
 	if err != nil {
@@ -30,22 +31,21 @@ func Frontmatter(vault obsidian.VaultManager, note obsidian.NoteManager, params 
 		return "", err
 	}
 
+	// 读取笔记当前内容
 	contents, err := note.GetContents(vaultPath, params.NoteName)
 	if err != nil {
 		return "", err
 	}
 
-	// Handle print operation
+	// 分发到具体的操作处理函数
 	if params.Print {
 		return handlePrint(contents)
 	}
 
-	// Handle edit operation
 	if params.Edit {
 		return handleEdit(note, vaultPath, params.NoteName, contents, params.Key, params.Value)
 	}
 
-	// Handle delete operation
 	if params.Delete {
 		return handleDelete(note, vaultPath, params.NoteName, contents, params.Key)
 	}
@@ -53,9 +53,10 @@ func Frontmatter(vault obsidian.VaultManager, note obsidian.NoteManager, params 
 	return "", errors.New("no operation specified: use --print, --edit, or --delete")
 }
 
+// handlePrint 处理 --print 操作：解析并格式化输出 frontmatter。
 func handlePrint(contents string) (string, error) {
 	if !frontmatter.HasFrontmatter(contents) {
-		return "", nil // Return empty for notes without frontmatter
+		return "", nil // 没有 frontmatter 的笔记返回空字符串
 	}
 
 	fm, _, err := frontmatter.Parse(contents)
@@ -71,6 +72,7 @@ func handlePrint(contents string) (string, error) {
 	return formatted, nil
 }
 
+// handleEdit 处理 --edit 操作：修改或新增指定 key，然后写回文件。
 func handleEdit(note obsidian.NoteManager, vaultPath, noteName, contents, key, value string) (string, error) {
 	if key == "" {
 		return "", errors.New("--key is required for edit operation")
@@ -92,6 +94,7 @@ func handleEdit(note obsidian.NoteManager, vaultPath, noteName, contents, key, v
 	return fmt.Sprintf("Updated frontmatter key '%s' in %s", key, noteName), nil
 }
 
+// handleDelete 处理 --delete 操作：删除指定 key，然后写回文件。
 func handleDelete(note obsidian.NoteManager, vaultPath, noteName, contents, key string) (string, error) {
 	if key == "" {
 		return "", errors.New("--key is required for delete operation")

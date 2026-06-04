@@ -9,19 +9,22 @@ import (
 	"sort"
 	"text/tabwriter"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
 )
 
+// listVaults 相关命令行参数变量。
 var listVaultsJSON bool
 var listVaultsPathOnly bool
 var listVaultsDefault bool
 
+// listVaultsCmd 定义了 "list-vaults" 子命令，用于列出所有已注册的 Obsidian vault。
+// 支持多种输出格式：表格（默认）、JSON、仅路径、仅默认 vault。
 var listVaultsCmd = &cobra.Command{
 	Use:     "list-vaults",
 	Aliases: []string{"lv"},
 	Short:   "lists all registered Obsidian vaults",
-	Args:    cobra.ExactArgs(0),
+	Args:    cobra.ExactArgs(0), // 不接受任何参数
 	Run: func(cmd *cobra.Command, args []string) {
 		vaults, err := obsidian.ListVaults()
 		if err != nil {
@@ -30,6 +33,7 @@ var listVaultsCmd = &cobra.Command{
 
 		defaultName := resolveDefaultVaultName()
 
+		// 如果用户指定了 --default，只显示默认 vault 的信息
 		if listVaultsDefault {
 			runListVaultsDefault(vaults, defaultName)
 			return
@@ -40,10 +44,12 @@ var listVaultsCmd = &cobra.Command{
 			return
 		}
 
+		// 按 vault 名称字母顺序排序，保证输出稳定
 		sort.Slice(vaults, func(i, j int) bool {
 			return vaults[i].Name < vaults[j].Name
 		})
 
+		// 根据用户选择的格式输出
 		if listVaultsJSON {
 			output, err := json.MarshalIndent(vaults, "", "  ")
 			if err != nil {
@@ -63,12 +69,14 @@ var listVaultsCmd = &cobra.Command{
 	},
 }
 
+// runListVaultsDefault 处理 --default flag 的逻辑，仅输出当前默认 vault 的信息。
 func runListVaultsDefault(vaults []obsidian.VaultInfo, defaultName string) {
 	if defaultName == "" {
 		fmt.Println("No default vault set. Use set-default-vault to set one.")
 		return
 	}
 
+	// 在已注册列表中找到默认 vault
 	var defaultVault *obsidian.VaultInfo
 	for _, v := range vaults {
 		if v.Name == defaultName {
@@ -104,11 +112,10 @@ func runListVaultsDefault(vaults []obsidian.VaultInfo, defaultName string) {
 	fmt.Println("Default open type:", openType)
 }
 
-// formatVaultsTable writes vaults as aligned columns using tabwriter,
-// so that the path column lines up regardless of vault name length.
-// The default vault is marked with (default).
+// formatVaultsTable 使用 tabwriter 将 vault 列表格式化为对齐的表格输出。
+// 默认 vault 会在行尾标注 (default)。
 //
-// Example output:
+// 示例输出：
 //
 //	Notes          /home/user/Notes  (default)
 //	LongVaultName  /home/user/LongVaultName
@@ -125,6 +132,8 @@ func formatVaultsTable(w io.Writer, vaults []obsidian.VaultInfo, defaultName str
 	_ = tw.Flush()
 }
 
+// resolveDefaultVaultName 读取 CLI 配置，返回当前默认 vault 的名称。
+// 如果没有设置默认 vault，返回空字符串。
 func resolveDefaultVaultName() string {
 	vault := obsidian.Vault{}
 	name, err := vault.DefaultName()

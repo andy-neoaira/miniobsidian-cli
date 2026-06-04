@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

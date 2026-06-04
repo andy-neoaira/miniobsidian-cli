@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Yakitrak/notesmd-cli/mocks"
-	"github.com/Yakitrak/notesmd-cli/pkg/actions"
+	"github.com/andy-neoaira/miniobsidian-cli/mocks"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,8 +3,8 @@ package cmd
 import (
 	"log"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/actions"
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
 )
 

@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/actions"
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
 )
 
+// frontmatter 相关命令行参数变量。
 var fmPrint bool
 var fmEdit bool
 var fmDelete bool
 var fmKey string
 var fmValue string
 
+// frontmatterCmd 定义了 "frontmatter" 子命令，用于查看或修改笔记的 YAML frontmatter。
+// 别名 "fm" 提供快捷输入方式。
 var frontmatterCmd = &cobra.Command{
 	Use:     "frontmatter <note>",
 	Aliases: []string{"fm"},
@@ -25,10 +28,10 @@ Use --print to display frontmatter, --edit to modify a key,
 or --delete to remove a key.
 
 Examples:
-  notesmd-cli frontmatter "My Note" --print
-  notesmd-cli frontmatter "My Note" --edit --key "status" --value "done"
-  notesmd-cli frontmatter "My Note" --delete --key "draft"`,
-	Args: cobra.ExactArgs(1),
+  obs-cli frontmatter "My Note" --print
+  obs-cli frontmatter "My Note" --edit --key "status" --value "done"
+  obs-cli frontmatter "My Note" --delete --key "draft"`,
+	Args: cobra.ExactArgs(1), // 必须提供 1 个参数：笔记名称
 	Run: func(cmd *cobra.Command, args []string) {
 		noteName := args[0]
 		vault := obsidian.Vault{Name: vaultName}

@@ -1,4 +1,4 @@
-BINARY_NAME=notesmd-cli
+BINARY_NAME=obs-cli
 
 install-hooks:
 	git config core.hooksPath .githooks

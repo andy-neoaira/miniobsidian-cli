@@ -6,45 +6,40 @@ import (
 	"strings"
 )
 
-// ErrPathTraversal is returned when a path attempts to escape the base directory
+// ErrPathTraversal 当路径试图逃逸出基础目录时返回此错误。
 var ErrPathTraversal = errors.New("path traversal detected: path must remain within vault directory")
 
-// ValidatePath ensures the given relative path, when combined with basePath,
-// stays within basePath. It returns the cleaned absolute path on success.
+// ValidatePath 确保 relativePath 与 basePath 拼接后仍位于 basePath 内部。
+// 返回清理后的绝对路径；如果路径试图逃逸出基础目录，返回 ErrPathTraversal。
 //
-// This function:
-// 1. Rejects absolute paths
-// 2. Cleans both paths and joins them
-// 3. Verifies the result starts with the base path
-//
-// Returns:
-// - The validated absolute path
-// - ErrPathTraversal if path escapes basePath
-// - Other errors for filesystem issues
+// 安全检查步骤：
+//  1. 拒绝绝对路径（防止直接传入 /etc/passwd）
+//  2. 清理并拼接路径
+//  3. 验证结果路径是否以 basePath 为前缀
 func ValidatePath(basePath, relativePath string) (string, error) {
-	// Reject absolute paths
+	// 拒绝绝对路径输入
 	if filepath.IsAbs(relativePath) {
 		return "", ErrPathTraversal
 	}
 
-	// Clean and make base path absolute
+	// 将基础路径转换为清理后的绝对路径
 	absBase, err := filepath.Abs(filepath.Clean(basePath))
 	if err != nil {
 		return "", err
 	}
 
-	// Clean the relative path and join with base
+	// 清理相对路径并与基础路径拼接
 	cleanRelative := filepath.Clean(relativePath)
 	joinedPath := filepath.Join(absBase, cleanRelative)
 
-	// Get absolute path of joined result
+	// 获取拼接后的绝对路径
 	absJoined, err := filepath.Abs(joinedPath)
 	if err != nil {
 		return "", err
 	}
 
-	// Verify the joined path starts with the base path
-	// Add trailing separator to prevent partial matches (e.g., /vault-backup matching /vault)
+	// 验证拼接后的路径是否以基础路径为前缀。
+	// 在 basePath 末尾加上路径分隔符，防止部分匹配（如 /vault-backup 匹配 /vault）。
 	if !strings.HasPrefix(absJoined, absBase+string(filepath.Separator)) && absJoined != absBase {
 		return "", ErrPathTraversal
 	}

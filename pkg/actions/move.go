@@ -1,16 +1,19 @@
 package actions
 
 import (
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 )
 
+// MoveParams 定义了 move 命令所需的业务参数。
 type MoveParams struct {
-	CurrentNoteName string
-	NewNoteName     string
-	ShouldOpen      bool
-	UseEditor       bool
+	CurrentNoteName string // 原笔记路径
+	NewNoteName     string // 新笔记路径
+	ShouldOpen      bool   // 移动后是否自动打开
+	UseEditor       bool   // 打开时是否使用编辑器
 }
 
+// MoveNote 是 "move" 命令的业务核心。
+// 流程：校验原路径和新路径 → 移动文件 → 更新 vault 中所有指向该笔记的链接 →（可选）打开新笔记。
 func MoveNote(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidian.UriManager, params MoveParams) error {
 	vaultName, err := vault.DefaultName()
 	if err != nil {
@@ -21,7 +24,7 @@ func MoveNote(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidi
 		return err
 	}
 
-	// Validate paths stay within vault directory
+	// 分别校验原路径和新路径，确保都在 vault 目录内
 	currentPath, err := obsidian.ValidatePath(vaultPath, params.CurrentNoteName)
 	if err != nil {
 		return err
@@ -31,16 +34,19 @@ func MoveNote(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidi
 		return err
 	}
 
+	// 执行文件移动/重命名
 	err = note.Move(currentPath, newPath)
 	if err != nil {
 		return err
 	}
 
+	// 遍历 vault 中所有笔记，将旧链接替换为新链接，保持笔记间引用关系
 	err = note.UpdateLinks(vaultPath, params.CurrentNoteName, params.NewNoteName)
 	if err != nil {
 		return err
 	}
 
+	// 如果用户要求打开新笔记
 	if params.ShouldOpen {
 		if params.UseEditor {
 			filePathWithExt, err := obsidian.ValidatePath(vaultPath, obsidian.AddMdSuffix(params.NewNoteName))

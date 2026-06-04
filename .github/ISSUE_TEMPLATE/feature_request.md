@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for NotesMD CLI
+about: Suggest an idea for miniobsidian-cli
 title: ''
 labels: ''
 assignees: ''

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// stubVaultManager 是测试专用的 VaultManager 简易实现，避免引入完整的 Mock 包。
 type stubVaultManager struct {
 	defaultName    string
 	defaultNameErr error
@@ -52,6 +53,7 @@ func (s *stubVaultManager) DefaultOpenType() (string, error) {
 	return s.openType, nil
 }
 
+// newSearchContentOptionsTestCmd 创建一个用于测试的 cobra.Command，注册 search-content 相关的 flag。
 func newSearchContentOptionsTestCmd() *cobra.Command {
 	c := &cobra.Command{Use: "test"}
 	c.Flags().BoolP("editor", "e", false, "")
@@ -62,6 +64,7 @@ func newSearchContentOptionsTestCmd() *cobra.Command {
 	return c
 }
 
+// TestSearchContentCommandFlagsWired 验证 search-content 命令的所有 flag 都已正确注册。
 func TestSearchContentCommandFlagsWired(t *testing.T) {
 	assert.NotNil(t, searchContentCmd.Flags().Lookup("no-interactive"))
 	assert.NotNil(t, searchContentCmd.Flags().Lookup("format"))
@@ -76,6 +79,7 @@ func TestSearchContentCommandFlagsWired(t *testing.T) {
 	assert.Contains(t, searchContentCmd.Aliases, "sc")
 }
 
+// TestBuildSearchContentOptionsParsesExplicitFlags 测试显式传入的 flag 被正确解析。
 func TestBuildSearchContentOptionsParsesExplicitFlags(t *testing.T) {
 	c := newSearchContentOptionsTestCmd()
 	err := c.ParseFlags([]string{"--editor", "--no-interactive", "--format", "json"})
@@ -92,6 +96,8 @@ func TestBuildSearchContentOptionsParsesExplicitFlags(t *testing.T) {
 	assert.NotNil(t, options.Output)
 }
 
+// TestBuildSearchContentOptionsRespectsDefaultOpenType 测试当用户没有显式传 --editor 时，
+// 是否尊重配置文件中的 default_open_type。
 func TestBuildSearchContentOptionsRespectsDefaultOpenType(t *testing.T) {
 	c := newSearchContentOptionsTestCmd()
 	err := c.ParseFlags([]string{})
@@ -107,6 +113,8 @@ func TestBuildSearchContentOptionsRespectsDefaultOpenType(t *testing.T) {
 	assert.True(t, options.InteractiveTerminal)
 }
 
+// TestBuildSearchContentOptionsDefaultOpenTypeErrorFallsBack 测试读取默认打开方式出错时，
+// 是否能优雅回退到不使用编辑器。
 func TestBuildSearchContentOptionsDefaultOpenTypeErrorFallsBack(t *testing.T) {
 	c := newSearchContentOptionsTestCmd()
 	err := c.ParseFlags([]string{})

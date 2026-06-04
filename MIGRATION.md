@@ -1,6 +1,6 @@
 # Migration Guide: Obsidian CLI → NotesMD CLI
 
-This guide will help you migrate from `obsidian-cli` (v0.2.3 and earlier) to `notesmd-cli` (v0.3.0+).
+This guide will help you migrate from `obsidian-cli` (v0.2.3 and earlier) to `obs-cli` (v0.3.0+).
 
 ## Why the Rename?
 
@@ -10,10 +10,10 @@ With the release of the Official Obsidian CLI, this project has been renamed fro
 
 ## What's Changed?
 
-- **Binary name**: `obsidian-cli` → `notesmd-cli`
+- **Binary name**: `obsidian-cli` → `obs-cli`
 - **Package names**: Updated in Homebrew, Scoop, and AUR
-- **Config directory**: `~/.config/obsidian-cli` → `~/.config/notesmd-cli`
-- **Go module path**: `github.com/Yakitrak/obsidian-cli` → `github.com/Yakitrak/notesmd-cli`
+- **Config directory**: `~/.config/obsidian-cli` → `~/.config/obs-cli`
+- **Go module path**: `github.com/Yakitrak/obsidian-cli` → `github.com/Yakitrak/obs-cli`
 
 ## Migration Steps
 
@@ -65,24 +65,24 @@ Follow the installation instructions in the [main README](README.md#install):
 
 ```bash
 scoop bucket add scoop-yakitrak https://github.com/yakitrak/scoop-yakitrak.git
-scoop install notesmd-cli
+scoop install obs-cli
 ```
 
 #### Mac/Linux (Homebrew)
 
 ```bash
 brew tap yakitrak/yakitrak
-brew install yakitrak/yakitrak/notesmd-cli
+brew install yakitrak/yakitrak/obs-cli
 ```
 
 #### Arch Linux (AUR)
 
 ```bash
 # Using yay
-yay -S notesmd-cli-bin
+yay -S obs-cli-bin
 
 # Using paru
-paru -S notesmd-cli-bin
+paru -S obs-cli-bin
 ```
 
 ### 3. Migrate Your Configuration
@@ -95,10 +95,10 @@ Your default vault settings and preferences are stored in a config file. You hav
 
 ```bash
 # Create new config directory
-mkdir -p ~/.config/notesmd-cli
+mkdir -p ~/.config/obs-cli
 
 # Copy your old config
-cp ~/.config/obsidian-cli/preferences.json ~/.config/notesmd-cli/preferences.json
+cp ~/.config/obsidian-cli/preferences.json ~/.config/obs-cli/preferences.json
 ```
 
 **Mac (Alternative Location):**
@@ -106,20 +106,20 @@ If your config was in your home directory:
 
 ```bash
 # Create new config directory
-mkdir -p ~/.notesmd-cli
+mkdir -p ~/.obs-cli
 
 # Copy your old config
-cp ~/.obsidian-cli/preferences.json ~/.notesmd-cli/preferences.json
+cp ~/.obsidian-cli/preferences.json ~/.obs-cli/preferences.json
 ```
 
 **Windows:**
 
 ```powershell
 # Create new config directory
-New-Item -ItemType Directory -Force -Path "$env:APPDATA\notesmd-cli"
+New-Item -ItemType Directory -Force -Path "$env:APPDATA\obs-cli"
 
 # Copy your old config
-Copy-Item "$env:APPDATA\obsidian-cli\preferences.json" "$env:APPDATA\notesmd-cli\preferences.json"
+Copy-Item "$env:APPDATA\obsidian-cli\preferences.json" "$env:APPDATA\obs-cli\preferences.json"
 ```
 
 #### Option B: Set Your Default Vault Again (Fresh Start)
@@ -127,29 +127,29 @@ Copy-Item "$env:APPDATA\obsidian-cli\preferences.json" "$env:APPDATA\notesmd-cli
 If you only had a default vault configured, simply set it again:
 
 ```bash
-notesmd-cli set-default "{vault-name}"
+obs-cli set-default "{vault-name}"
 ```
 
 ### 4. Verify the Installation
 
-Check that `notesmd-cli` is working:
+Check that `obs-cli` is working:
 
 ```bash
 # Check version
-notesmd-cli --version
+obs-cli --version
 
 # Verify your default vault
-notesmd-cli print-default
+obs-cli print-default
 ```
 
 ### 5. Update Your Scripts (If Applicable)
 
-If you have any shell scripts, aliases, or automation that references `obsidian-cli`, update them to use `notesmd-cli`:
+If you have any shell scripts, aliases, or automation that references `obsidian-cli`, update them to use `obs-cli`:
 
 ```bash
 # Example: Update a shell alias in ~/.zshrc or ~/.bashrc
 # Old: alias obs='obsidian-cli'
-# New: alias obs='notesmd-cli'
+# New: alias obs='obs-cli'
 ```
 
 ### 6. Clean Up (Optional)
@@ -172,29 +172,29 @@ Remove-Item -Recurse -Force "$env:APPDATA\obsidian-cli"
 
 ## Troubleshooting
 
-### "Command not found: notesmd-cli"
+### "Command not found: obs-cli"
 
-Make sure you've installed `notesmd-cli` and that it's in your PATH. Try:
+Make sure you've installed `obs-cli` and that it's in your PATH. Try:
 
 ```bash
 # Reload your shell
 exec $SHELL
 
 # Or check if it's installed but not in PATH
-which notesmd-cli
+which obs-cli
 ```
 
 ### Config Not Working
 
 If your settings aren't being recognized:
 
-1. Check the config file exists: `notesmd-cli print-default`
+1. Check the config file exists: `obs-cli print-default`
 2. Verify the config directory location for your OS
-3. Try setting your default vault again: `notesmd-cli set-default "{vault-name}"`
+3. Try setting your default vault again: `obs-cli set-default "{vault-name}"`
 
 ### Need Help?
 
-Open an issue on [GitHub](https://github.com/Yakitrak/notesmd-cli/issues) if you encounter any problems during migration.
+Open an issue on [GitHub](https://github.com/Yakitrak/obs-cli/issues) if you encounter any problems during migration.
 
 ## For Developers
 
@@ -204,13 +204,13 @@ If you've been using `obsidian-cli` in your Go projects:
 
 ```bash
 # Update go.mod
-go get github.com/Yakitrak/notesmd-cli@latest
+go get github.com/Yakitrak/obs-cli@latest
 
 # Update imports in your code
 # Old: import "github.com/Yakitrak/obsidian-cli/pkg/..."
-# New: import "github.com/Yakitrak/notesmd-cli/pkg/..."
+# New: import "github.com/Yakitrak/obs-cli/pkg/..."
 ```
 
 ---
 
-**Welcome to NotesMD CLI!** 🎉 If you have any questions or feedback about the migration, please [open an issue](https://github.com/Yakitrak/notesmd-cli/issues/new/choose).
+**Welcome to NotesMD CLI!** 🎉 If you have any questions or feedback about the migration, please [open an issue](https://github.com/Yakitrak/obs-cli/issues/new/choose).

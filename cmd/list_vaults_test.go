@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/obsidian"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
 	"github.com/stretchr/testify/assert"
 )
 
+// TestFormatVaultsTable 测试 vault 列表的表格格式化输出。
 func TestFormatVaultsTable(t *testing.T) {
 	t.Run("Aligns columns with varying name lengths", func(t *testing.T) {
+		// 准备不同名称长度的 vault 数据
 		vaults := []obsidian.VaultInfo{
 			{Name: "Notes", Path: "/home/user/Notes"},
 			{Name: "LongVaultName", Path: "/home/user/LongVaultName"},
@@ -20,18 +22,17 @@ func TestFormatVaultsTable(t *testing.T) {
 		formatVaultsTable(&buf, vaults, "")
 		output := buf.String()
 
-		// All path columns should start at the same position
+		// 验证输出了 3 行
 		lines := bytes.Split(bytes.TrimSpace([]byte(output)), []byte("\n"))
 		assert.Len(t, lines, 3)
 
-		// Each line should contain both name and path
+		// 每行都应包含名称和路径
 		assert.Contains(t, output, "Notes")
 		assert.Contains(t, output, "/home/user/Notes")
 		assert.Contains(t, output, "LongVaultName")
 		assert.Contains(t, output, "/home/user/LongVaultName")
 
-		// Paths should be aligned — find the byte offset of each path
-		// With tabwriter, the path column should start at the same position
+		// tabwriter 应保证路径列对齐：找到每行路径的起始偏移量并比较
 		pathOffsets := make([]int, len(lines))
 		for i, line := range lines {
 			pathOffsets[i] = bytes.Index(line, []byte("/home"))
@@ -65,7 +66,7 @@ func TestFormatVaultsTable(t *testing.T) {
 
 		assert.Contains(t, output, "Work")
 		assert.Contains(t, output, "(default)")
-		// Notes line should not have (default)
+		// Notes 行不应包含 (default)
 		lines := bytes.Split(bytes.TrimSpace([]byte(output)), []byte("\n"))
 		assert.Len(t, lines, 2)
 		assert.NotContains(t, string(lines[0]), "(default)")

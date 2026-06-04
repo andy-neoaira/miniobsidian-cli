@@ -10,18 +10,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Yakitrak/notesmd-cli/pkg/config"
+	"github.com/andy-neoaira/miniobsidian-cli/pkg/config"
 )
 
-// AddVault registers a vault path in the Obsidian config file.
-// It creates the config file and directory if they don't exist.
-// Returns the resolved absolute path on success.
+// AddVault 将本地目录注册为 Obsidian vault。
+// 如果 Obsidian 的配置文件不存在，会自动创建。
+// 返回解析后的绝对路径。
 func AddVault(vaultPath string) (string, error) {
+	// 将输入路径解析为绝对路径，消除 . 和 .. 等相对路径元素
 	absPath, err := filepath.Abs(vaultPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve path: %w", err)
 	}
 
+	// 校验路径存在且是目录
 	info, err := os.Stat(absPath)
 	if err != nil {
 		return "", fmt.Errorf("path does not exist: %s", absPath)
@@ -30,18 +32,20 @@ func AddVault(vaultPath string) (string, error) {
 		return "", fmt.Errorf("path is not a directory: %s", absPath)
 	}
 
+	// 读取或创建 Obsidian 的 vault 注册表配置
 	obsidianConfigFile, vaultsConfig, err := readOrCreateObsidianConfig()
 	if err != nil {
 		return "", err
 	}
 
-	// Check if vault already registered
+	// 检查该路径是否已被注册，避免重复
 	for _, v := range vaultsConfig.Vaults {
 		if filepath.Clean(v.Path) == filepath.Clean(absPath) {
 			return "", fmt.Errorf("vault already registered: %s", absPath)
 		}
 	}
 
+	// 生成唯一的随机 vault ID（Obsidian 官方也使用这种 32 位 hex ID）
 	id, err := generateVaultID()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate vault ID: %w", err)
@@ -54,9 +58,9 @@ func AddVault(vaultPath string) (string, error) {
 	return absPath, writeObsidianConfig(obsidianConfigFile, vaultsConfig)
 }
 
-// RemoveVault removes a vault from the Obsidian config file by name or path.
-// Returns the resolved vault name (directory basename) so callers can use it
-// for follow-up operations like clearing the default.
+// RemoveVault 从 Obsidian 配置中注销一个 vault。
+// 支持通过名称或完整路径指定。如果通过名称匹配到多个 vault，会报错提示用户使用完整路径。
+// 返回被移除 vault 的名称（目录 basename），方便调用方做后续清理（如清除默认设置）。
 func RemoveVault(input string) (string, error) {
 	obsidianConfigFile, err := ObsidianConfigFile()
 	if err != nil {
@@ -73,7 +77,7 @@ func RemoveVault(input string) (string, error) {
 		return "", errors.New(ObsidianConfigParseError)
 	}
 
-	// Exact path match (only when input looks like a path, not a bare name)
+	// 如果输入看起来像路径（绝对路径、含分隔符、以 . 开头），先尝试精确路径匹配
 	if filepath.IsAbs(input) || strings.Contains(input, string(filepath.Separator)) || strings.HasPrefix(input, ".") {
 		absInput, _ := filepath.Abs(input)
 		for id, v := range vaultsConfig.Vaults {
@@ -85,7 +89,7 @@ func RemoveVault(input string) (string, error) {
 		}
 	}
 
-	// Name match -- collect all matches to detect ambiguity
+	// 按名称（目录 basename）匹配，收集所有匹配项以检测歧义
 	type match struct {
 		id   string
 		path string
@@ -115,23 +119,24 @@ func RemoveVault(input string) (string, error) {
 	return input, writeObsidianConfig(obsidianConfigFile, vaultsConfig)
 }
 
-// ClearDefaultIfMatch clears the default vault in CLI config if it matches the given name.
+// ClearDefaultIfMatch 如果被移除的 vault 名称恰好是当前默认 vault，则清除默认设置。
 func ClearDefaultIfMatch(name string) error {
 	_, cliConfigFile, err := CliConfigPath()
 	if err != nil {
-		return nil //nolint:nilerr // no config dir means nothing to clear
+		return nil //nolint:nilerr // 没有配置目录意味着无需清理
 	}
 
 	content, err := os.ReadFile(cliConfigFile)
 	if err != nil {
-		return nil //nolint:nilerr // no config file means nothing to clear
+		return nil //nolint:nilerr // 没有配置文件意味着无需清理
 	}
 
 	cliConfig := CliConfig{}
 	if err := json.Unmarshal(content, &cliConfig); err != nil {
-		return nil //nolint:nilerr // unparseable config means nothing to clear
+		return nil //nolint:nilerr // 配置解析失败也意味着无需清理
 	}
 
+	// 只有匹配时才清除
 	if cliConfig.DefaultVaultName != name {
 		return nil
 	}
@@ -140,6 +145,8 @@ func ClearDefaultIfMatch(name string) error {
 	return v.SetDefaultName("")
 }
 
+// readOrCreateObsidianConfig 读取 Obsidian 的 vault 注册表配置。
+// 如果配置文件不存在，则创建新的空配置并返回。
 func readOrCreateObsidianConfig() (string, ObsidianVaultConfig, error) {
 	empty := ObsidianVaultConfig{
 		Vaults: make(map[string]struct {
@@ -147,7 +154,7 @@ func readOrCreateObsidianConfig() (string, ObsidianVaultConfig, error) {
 		}),
 	}
 
-	// Try to find existing config
+	// 尝试读取已有配置
 	obsidianConfigFile, err := ObsidianConfigFile()
 	if err == nil {
 		content, readErr := os.ReadFile(obsidianConfigFile)
@@ -165,7 +172,7 @@ func readOrCreateObsidianConfig() (string, ObsidianVaultConfig, error) {
 		}
 	}
 
-	// Config doesn't exist, create it
+	// 配置不存在：创建新的空配置
 	userConfigDir, err := config.UserConfigDirectory()
 	if err != nil {
 		return "", empty, fmt.Errorf("failed to determine config directory: %w", err)
@@ -180,6 +187,7 @@ func readOrCreateObsidianConfig() (string, ObsidianVaultConfig, error) {
 	return configFile, empty, nil
 }
 
+// writeObsidianConfig 将 vault 注册表配置序列化为 JSON 并写入文件。
 func writeObsidianConfig(path string, cfg ObsidianVaultConfig) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
@@ -193,6 +201,7 @@ func writeObsidianConfig(path string, cfg ObsidianVaultConfig) error {
 	return nil
 }
 
+// generateVaultID 生成 16 字节随机数并编码为 32 位 hex 字符串，作为 vault 的唯一 ID。
 func generateVaultID() (string, error) {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {

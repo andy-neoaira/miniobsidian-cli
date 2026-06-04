@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+// AddMdSuffix 为没有 .md 后缀的字符串追加 .md。
+// 这是为了保证用户输入的笔记名最终都对应到 Markdown 文件。
 func AddMdSuffix(str string) string {
 	if !strings.HasSuffix(str, ".md") {
 		return str + ".md"
@@ -17,6 +19,7 @@ func AddMdSuffix(str string) string {
 	return str
 }
 
+// RemoveMdSuffix 移除字符串末尾的 .md 后缀（如果存在）。
 func RemoveMdSuffix(str string) string {
 	if strings.HasSuffix(str, ".md") {
 		return strings.TrimSuffix(str, ".md")
@@ -24,14 +27,14 @@ func RemoveMdSuffix(str string) string {
 	return str
 }
 
-// normalizePathSeparators converts backslashes to forward slashes for cross-platform consistency.
-// Obsidian uses forward slashes in links regardless of OS.
+// normalizePathSeparators 将反斜杠转换为正斜杠，保证跨平台一致性。
+// Obsidian 在所有操作系统中都使用正斜杠作为链接分隔符。
 func normalizePathSeparators(path string) string {
 	return strings.ReplaceAll(path, "\\", "/")
 }
 
-// wikiLinkPatterns returns the three wikilink patterns for a note name:
-// [[name]], [[name|, [[name#
+// wikiLinkPatterns 返回一个笔记名称对应的三种 wikilink 模式：
+// [[name]]、[[name|、[[name#
 func wikiLinkPatterns(name string) [3]string {
 	return [3]string{
 		"[[" + name + "]]",
@@ -40,29 +43,32 @@ func wikiLinkPatterns(name string) [3]string {
 	}
 }
 
+// GenerateNoteLinkTexts 生成指向某篇笔记的 wikilink 模式数组。
+// 它会先取笔记名的 basename 并去掉 .md 后缀。
 func GenerateNoteLinkTexts(noteName string) [3]string {
 	noteName = filepath.Base(noteName)
 	noteName = RemoveMdSuffix(noteName)
 	return wikiLinkPatterns(noteName)
 }
 
-// GenerateBacklinkSearchPatterns creates patterns to find links pointing to a note.
+// GenerateBacklinkSearchPatterns 创建用于查找反向链接的搜索模式列表。
+// 包括基于 basename 的 wikilink、基于完整路径的 wikilink，以及多种 Markdown 链接格式。
 func GenerateBacklinkSearchPatterns(notePath string) []string {
 	normalized := normalizePathSeparators(notePath)
 	pathNoExt := RemoveMdSuffix(normalized)
 	baseName := RemoveMdSuffix(path.Base(normalized))
 
-	// Wikilinks (basename patterns)
+	// 1. 基于 basename 的 wikilink（最常用）
 	basePatterns := wikiLinkPatterns(baseName)
 	patterns := append([]string{}, basePatterns[:]...)
 
-	// Path-based wikilinks (only if path differs from basename)
+	// 2. 基于完整路径的 wikilink（仅在路径与 basename 不同时）
 	if pathNoExt != baseName {
 		pathPatterns := wikiLinkPatterns(pathNoExt)
 		patterns = append(patterns, pathPatterns[:]...)
 	}
 
-	// Markdown links
+	// 3. Markdown 标准链接和相对链接
 	mdPath := AddMdSuffix(normalized)
 	patterns = append(patterns,
 		"]("+mdPath+")",
@@ -74,55 +80,52 @@ func GenerateBacklinkSearchPatterns(notePath string) []string {
 	return patterns
 }
 
-// GenerateLinkReplacements creates all replacement patterns for updating links when moving a note.
-// It normalizes path separators to forward slashes for cross-platform consistency,
-// as Obsidian uses forward slashes in links regardless of operating system.
-// This handles:
-// - Simple wikilinks: [[note]], [[note|alias]], [[note#heading]]
-// - Path-based wikilinks: [[folder/note]], [[folder/note|alias]], [[folder/note#heading]]
-// - Markdown links: [text](folder/note.md), [text](./folder/note.md)
+// GenerateLinkReplacements 创建移动笔记时需要替换的链接映射表。
+// 它会处理各种 Obsidian 链接格式：简单 wikilink、路径 wikilink、Markdown 链接。
+// 所有路径都会被归一化为正斜杠，以保证跨平台一致。
 func GenerateLinkReplacements(oldNotePath, newNotePath string) map[string]string {
 	replacements := make(map[string]string)
 
-	// Normalize paths to forward slashes for consistent matching
+	// 将路径归一化为正斜杠，确保匹配一致
 	oldNormalized := normalizePathSeparators(oldNotePath)
 	newNormalized := normalizePathSeparators(newNotePath)
 
-	// Get basename without .md extension (use path.Base on normalized paths for cross-platform consistency)
+	// 取 basename（不含扩展名）
 	oldBase := RemoveMdSuffix(path.Base(oldNormalized))
 	newBase := RemoveMdSuffix(path.Base(newNormalized))
 
-	// Get full path without .md extension
+	// 取完整路径（不含扩展名）
 	oldPathNoExt := RemoveMdSuffix(oldNormalized)
 	newPathNoExt := RemoveMdSuffix(newNormalized)
 
-	// 1. Simple wikilinks (basename only) - for backward compatibility
+	// 1. 简单 wikilink（仅 basename）——向后兼容
 	replacements["[["+oldBase+"]]"] = "[[" + newBase + "]]"
 	replacements["[["+oldBase+"|"] = "[[" + newBase + "|"
 	replacements["[["+oldBase+"#"] = "[[" + newBase + "#"
 
-	// 2. Path-based wikilinks (only if path differs from basename)
+	// 2. 基于路径的 wikilink（路径与 basename 不同时）
 	if oldPathNoExt != oldBase {
 		replacements["[["+oldPathNoExt+"]]"] = "[[" + newPathNoExt + "]]"
 		replacements["[["+oldPathNoExt+"|"] = "[[" + newPathNoExt + "|"
 		replacements["[["+oldPathNoExt+"#"] = "[[" + newPathNoExt + "#"
 	}
 
-	// 3. Markdown links (various formats)
+	// 3. Markdown 链接（多种格式）
 	oldMd := AddMdSuffix(oldNormalized)
 	newMd := AddMdSuffix(newNormalized)
 
-	// Standard markdown link: [text](folder/note.md)
+	// 标准 Markdown 链接: [text](folder/note.md)
 	replacements["]("+oldMd+")"] = "](" + newMd + ")"
 	replacements["]("+oldPathNoExt+")"] = "](" + newPathNoExt + ")"
 
-	// Relative markdown link: [text](./folder/note.md)
+	// 相对 Markdown 链接: [text](./folder/note.md)
 	replacements["](./"+oldMd+")"] = "](./" + newMd + ")"
 	replacements["](./"+oldPathNoExt+")"] = "](./" + newPathNoExt + ")"
 
 	return replacements
 }
 
+// ReplaceContent 批量替换 content 中的字符串，使用 replacements map 中的键值对。
 func ReplaceContent(content []byte, replacements map[string]string) []byte {
 	for o, n := range replacements {
 		content = bytes.ReplaceAll(content, []byte(o), []byte(n))
@@ -130,12 +133,11 @@ func ReplaceContent(content []byte, replacements map[string]string) []byte {
 	return content
 }
 
-// IsExcluded reports whether relPath (a slash-separated path relative to the
-// vault root) matches any of the Obsidian userIgnoreFilters patterns.
-// Supported patterns:
-//   - Plain paths: "Archive", "Templates/" — prefix match
-//   - Globs: "*.pdf" — matches against each path segment
-//   - Double-star: "**/drafts" — matches at any depth
+// IsExcluded 判断 relPath（相对于 vault 根目录的正斜杠路径）是否匹配任何排除规则。
+// 支持的规则类型：
+//   - 纯路径前缀："Archive"、"Templates/"
+//   - 通配符："*.pdf"
+//   - 双星号：**/drafts（匹配任意深度）
 func IsExcluded(relPath string, filters []string) bool {
 	normalized := filepath.ToSlash(relPath)
 	for _, filter := range filters {
@@ -146,25 +148,26 @@ func IsExcluded(relPath string, filters []string) bool {
 	return false
 }
 
+// matchFilter 是 IsExcluded 的底层匹配逻辑。
 func matchFilter(normalizedPath, filter string) bool {
 	filter = strings.TrimRight(filter, "/")
 
-	// Plain path: prefix match
+	// 纯路径：精确匹配或前缀匹配（以 "/" 结尾表示目录前缀）
 	if !strings.ContainsAny(filter, "*?[") {
 		return normalizedPath == filter || strings.HasPrefix(normalizedPath, filter+"/")
 	}
 
-	// "**/" prefix: match the remainder against all subpaths and segments
+	// "**/" 前缀：匹配剩余部分在任意深度出现
 	if strings.HasPrefix(filter, "**/") {
 		return matchPathOrSegments(normalizedPath, filter[3:])
 	}
 
-	// Simple glob (e.g. "*.pdf"): match against full path and each segment
+	// 简单 glob：同时匹配完整路径和每个路径段
 	return matchPathOrSegments(normalizedPath, filter)
 }
 
-// matchPathOrSegments tries filepath.Match against the full path and each
-// individual path segment, so "*.pdf" matches "sub/file.pdf" via the segment.
+// matchPathOrSegments 先用 filepath.Match 匹配完整路径，如果不匹配则逐个匹配路径段。
+// 这样 "*.pdf" 也能匹配 "sub/file.pdf" 中的 file.pdf 段。
 func matchPathOrSegments(path, pattern string) bool {
 	if matched, _ := filepath.Match(pattern, path); matched {
 		return true
@@ -177,6 +180,8 @@ func matchPathOrSegments(path, pattern string) bool {
 	return false
 }
 
+// ShouldSkipDirectoryOrFile 判断文件/目录是否应该被跳过（不处理）。
+// 跳过条件：是目录、是隐藏文件（以 . 开头）、不是 .md 文件。
 func ShouldSkipDirectoryOrFile(info os.FileInfo) bool {
 	isDirectory := info.IsDir()
 	isHidden := info.Name()[0] == '.'
@@ -187,24 +192,25 @@ func ShouldSkipDirectoryOrFile(info os.FileInfo) bool {
 	return false
 }
 
-// OpenInEditor opens the specified file path in the user's preferred editor.
-// It supports common GUI editors with appropriate wait flags and handles
-// EDITOR values that contain arguments (e.g., "code -w").
+// OpenInEditor 使用用户偏好的编辑器打开指定文件。
+// 支持常见 GUI 编辑器（VS Code、Sublime、Atom 等）的自动 --wait 等待标志，
+// 也支持 EEDITOR 环境变量中包含参数的情况（如 "code -w"）。
 func OpenInEditor(filePath string) error {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
-		editor = "vim" // Default fallback
+		editor = "vim" // 如果未设置 EDITOR，默认回退到 vim
 	}
 
-	// Split EDITOR into command and any user-provided arguments.
+	// 将 EDITOR 拆分为命令和参数（处理 "code -w" 这类带参数的情况）
 	parts := strings.Fields(editor)
 	editorBin := parts[0]
 	userArgs := parts[1:]
 
-	// Build arguments: user-provided args + auto-detected wait flag + file path.
+	// 构建参数列表：用户参数 + 自动等待标志 + 文件路径
 	var args []string
 	args = append(args, userArgs...)
 
+	// 检测常见 GUI 编辑器，自动添加 --wait 防止命令立即返回
 	editorLower := strings.ToLower(filepath.Base(editorBin))
 	needsWait := strings.Contains(editorLower, "code") ||
 		strings.Contains(editorLower, "vscode") ||
@@ -212,7 +218,7 @@ func OpenInEditor(filePath string) error {
 		strings.Contains(editorLower, "atom") ||
 		strings.Contains(editorLower, "mate")
 
-	// Only add --wait if the user hasn't already included it.
+	// 如果用户已经在参数中传了 --wait，则不再重复添加
 	if needsWait && !containsWaitFlag(userArgs) {
 		args = append(args, "--wait")
 	}
@@ -231,7 +237,7 @@ func OpenInEditor(filePath string) error {
 	return nil
 }
 
-// containsWaitFlag checks if any of the args already include a wait-style flag.
+// containsWaitFlag 检查参数列表中是否已经包含等待类 flag。
 func containsWaitFlag(args []string) bool {
 	for _, a := range args {
 		if a == "--wait" || a == "-w" {

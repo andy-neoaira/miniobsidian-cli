@@ -38,7 +38,7 @@
 
 ---
 
-## ![notesmd-cli Usage](./docs/usage.png)
+## ![obs-cli Usage](./docs/usage.png)
 
 ## Description
 
@@ -49,51 +49,128 @@ that works on top of your local folder of plain text notes. This CLI tool (writt
 
 ## Install
 
-### Windows
+### Download Pre-built Binary
 
-You will need to have [Scoop](https://scoop.sh/) installed. On powershell run:
+The easiest way to install is to download a pre-built binary from the [GitHub Releases](https://github.com/andy-neoaira/miniobsidian-cli/releases) page.
 
-```
-scoop bucket add scoop-yakitrak https://github.com/yakitrak/scoop-yakitrak.git
-```
+**Supported platforms:**
 
-```
-scoop install notesmd-cli
-```
+| OS | Architecture | Release Asset Name |
+|---|---|---|
+| macOS (Intel) | amd64 | `obs-cli_Darwin_x86_64.tar.gz` |
+| macOS (Apple Silicon) | arm64 | `obs-cli_Darwin_arm64.tar.gz` |
+| Linux | amd64 | `obs-cli_Linux_x86_64.tar.gz` |
+| Linux | arm64 | `obs-cli_Linux_arm64.tar.gz` |
+| Windows | amd64 | `obs-cli_Windows_x86_64.zip` |
 
-### Mac and Linux
+**One-line install (macOS / Linux):**
 
-You will need to have [Homebrew](https://brew.sh/) installed.
+```bash
+# Download latest release for your platform
+curl -sL https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/obs-cli_$(uname -s)_$(uname -m).tar.gz | tar xz
 
-```Bash
-brew tap yakitrak/yakitrak
-```
-
-```Bash
-brew install yakitrak/yakitrak/notesmd-cli
-```
-
-### Arch Linux (AUR)
-
-Install the offical binary with your preferred AUR helper:
-```sh
-yay -S notesmd-cli-bin
+# Move to a directory in your PATH
+sudo mv obs-cli /usr/local/bin/
 ```
 
-Or build from source:
-```sh
-yay -S notesmd-cli
+> **Note:** On Apple Silicon Macs, `uname -m` prints `arm64`. On Intel Macs, it prints `x86_64`.
+
+**Windows (PowerShell):**
+
+```powershell
+# Download latest release
+Invoke-WebRequest -Uri "https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/obs-cli_Windows_x86_64.zip" -OutFile "obs-cli.zip"
+
+# Extract
+Expand-Archive -Path "obs-cli.zip" -DestinationPath "."
+
+# Add to PATH (optional)
+$env:PATH += ";$PWD"
 ```
 
 ### Build from Source
 
 Requires [Go](https://go.dev/dl/) 1.19 or later.
 
+#### Quick Build
+
 ```bash
-git clone https://github.com/yakitrak/notesmd-cli.git
-cd notesmd-cli
-go build -o notesmd-cli .
-sudo install -m 755 notesmd-cli /usr/local/bin/
+git clone https://github.com/andy-neoaira/miniobsidian-cli.git
+cd miniobsidian-cli
+go build -o obs-cli .
+sudo install -m 755 obs-cli /usr/local/bin/
+```
+
+#### Using Make
+
+This project includes a `Makefile` with convenient targets for development and release:
+
+```bash
+# Build binaries for all supported platforms (Darwin, Linux, Windows)
+make build-all
+
+# Run all tests
+make test
+
+# Run tests with coverage report
+make test-coverage
+
+# Install git hooks
+make install-hooks
+```
+
+#### Cross-Compilation
+
+Go supports cross-compilation out of the box. Set `GOOS` and `GOARCH` to build for different platforms:
+
+```bash
+# macOS (Intel)
+GOOS=darwin GOARCH=amd64 go build -o obs-cli-darwin-amd64 .
+
+# macOS (Apple Silicon)
+GOOS=darwin GOARCH=arm64 go build -o obs-cli-darwin-arm64 .
+
+# Linux
+GOOS=linux GOARCH=amd64 go build -o obs-cli-linux-amd64 .
+GOOS=linux GOARCH=arm64 go build -o obs-cli-linux-arm64 .
+
+# Windows
+GOOS=windows GOARCH=amd64 go build -o obs-cli-windows-amd64.exe .
+```
+
+#### Development Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/andy-neoaira/miniobsidian-cli.git
+cd miniobsidian-cli
+
+# 2. Download dependencies (using vendor mode)
+go mod vendor
+
+# 3. Run tests to ensure everything is working
+go test ./...
+
+# 4. Build the binary
+go build -o obs-cli .
+
+# 5. Run the CLI
+./obs-cli --help
+```
+
+#### Install from Source
+
+After building, you can install the binary to your system:
+
+```bash
+# Linux / macOS
+sudo cp obs-cli /usr/local/bin/
+
+# Or use go install (installs to $GOPATH/bin or $HOME/go/bin)
+go install github.com/andy-neoaira/miniobsidian-cli@latest
+
+# Verify installation
+obs-cli --version
 ```
 
 ### Headless / No Obsidian Installed
@@ -104,20 +181,20 @@ If you're running on a headless server or don't have Obsidian installed (e.g., s
 
 ```bash
 # Register your vault directory
-notesmd-cli add-vault /home/user/vaults/my-brain
+obs-cli add-vault /home/user/vaults/my-brain
 
 # Set it as default
-notesmd-cli set-default-vault "my-brain"
+obs-cli set-default-vault "my-brain"
 
 # Or do both in one step
-notesmd-cli add-vault /home/user/vaults/my-brain --set-default
+obs-cli add-vault /home/user/vaults/my-brain --set-default
 ```
 
 For multiple vaults:
 ```bash
-notesmd-cli add-vault /home/user/vaults/personal
-notesmd-cli add-vault /home/user/vaults/work
-notesmd-cli set-default-vault "personal"
+obs-cli add-vault /home/user/vaults/personal
+obs-cli add-vault /home/user/vaults/work
+obs-cli set-default-vault "personal"
 ```
 
 You can then pass `--vault "work"` to target a specific vault.
@@ -156,7 +233,7 @@ You can then pass `--vault "work"` to target a specific vault.
 
 ```bash
 # See All command instructions
-notesmd-cli --help
+obs-cli --help
 ```
 
 ### Editor Flag
@@ -178,18 +255,18 @@ The editor is determined by the `EDITOR` environment variable (e.g., `"vim"`, `"
 export EDITOR="code"  # or "vim", "nano", "subl", etc.
 
 # Use with supported commands
-notesmd-cli open "note.md" --editor
-notesmd-cli daily --editor
-notesmd-cli search --editor
-notesmd-cli search-content "term" --editor
-notesmd-cli create "note.md" --open --editor
-notesmd-cli move "old.md" "new.md" --open --editor
+obs-cli open "note.md" --editor
+obs-cli daily --editor
+obs-cli search --editor
+obs-cli search-content "term" --editor
+obs-cli create "note.md" --open --editor
+obs-cli move "old.md" "new.md" --open --editor
 ```
 
 To avoid passing `--editor` every time, configure it as the default open type once:
 
 ```bash
-notesmd-cli set-default-vault --open-type editor
+obs-cli set-default-vault --open-type editor
 ```
 
 ### Add Vault
@@ -200,10 +277,10 @@ If you have Obsidian installed, vaults are registered automatically when you ope
 
 ```bash
 # Register a vault
-notesmd-cli add-vault /path/to/vault
+obs-cli add-vault /path/to/vault
 
 # Register and set as default
-notesmd-cli add-vault /path/to/vault --set-default
+obs-cli add-vault /path/to/vault --set-default
 ```
 
 ### Remove Vault
@@ -212,10 +289,10 @@ Removes a vault from the Obsidian config. Does not delete any files on disk. If 
 
 ```bash
 # Remove by vault name
-notesmd-cli remove-vault "{vault-name}"
+obs-cli remove-vault "{vault-name}"
 
 # Remove by vault path
-notesmd-cli remove-vault /path/to/vault
+obs-cli remove-vault /path/to/vault
 ```
 
 ### List Vaults
@@ -224,26 +301,26 @@ Lists all registered Obsidian vaults. The default vault is marked with `(default
 
 ```bash
 # Lists all vaults (name and path, default marked)
-notesmd-cli list-vaults
+obs-cli list-vaults
 
 # Outputs vaults as JSON
-notesmd-cli list-vaults --json
+obs-cli list-vaults --json
 
 # Outputs only vault paths (useful for scripting)
-notesmd-cli list-vaults --path-only
+obs-cli list-vaults --path-only
 
 # Show only the default vault (name, path, open type)
-notesmd-cli list-vaults --default
+obs-cli list-vaults --default
 
 # Get just the default vault path (useful for scripting)
-notesmd-cli list-vaults --default --path-only
+obs-cli list-vaults --default --path-only
 ```
 
 You can add this to your shell configuration file (like `~/.zshrc`) to quickly navigate to the default vault:
 
 ```bash
 obs_cd() {
-    local result=$(notesmd-cli list-vaults --default --path-only)
+    local result=$(obs-cli list-vaults --default --path-only)
     [ -n "$result" ] && cd -- "$result"
 }
 ```
@@ -256,18 +333,18 @@ Defines the default vault and/or open type for future usage. If no default vault
 
 ```bash
 # Set default vault (by name or path)
-notesmd-cli set-default-vault "{vault-name}"
+obs-cli set-default-vault "{vault-name}"
 
 # Set default open type: 'obsidian' (default) or 'editor'
-notesmd-cli set-default-vault --open-type editor
+obs-cli set-default-vault --open-type editor
 
 # Set both at once
-notesmd-cli set-default-vault "{vault-name}" --open-type editor
+obs-cli set-default-vault "{vault-name}" --open-type editor
 ```
 
 When `default_open_type` is set to `editor`, commands that support `--open` will open notes in `$EDITOR` automatically, without needing to pass `--editor` each time.
 
-Note: `open` and other commands in `notesmd-cli` use this vault's base directory as the working directory, not the current working directory of your terminal.
+Note: `open` and other commands in `obs-cli` use this vault's base directory as the working directory, not the current working directory of your terminal.
 
 ### Open Note
 
@@ -275,18 +352,18 @@ Open given note name in Obsidian (or your default editor). Note can also be an a
 
 ```bash
 # Opens note in obsidian vault
-notesmd-cli open "{note-name}"
+obs-cli open "{note-name}"
 
 # Opens note in specified obsidian vault
-notesmd-cli open "{note-name}" --vault "{vault-name}"
+obs-cli open "{note-name}" --vault "{vault-name}"
 
 # Opens note at a specific heading (case-sensitive)
-notesmd-cli open "{note-name}" --section "{heading-text}"
+obs-cli open "{note-name}" --section "{heading-text}"
 
-notesmd-cli open "{note-name}" --vault "{vault-name}" --section "{heading-text}"
+obs-cli open "{note-name}" --vault "{vault-name}" --section "{heading-text}"
 
 # Opens note in your default editor instead of Obsidian
-notesmd-cli open "{note-name}" --editor
+obs-cli open "{note-name}" --editor
 ```
 
 ### Daily Note
@@ -295,19 +372,19 @@ Creates or opens today's daily note directly on disk. **Obsidian does not need t
 
 ```bash
 # Creates / opens daily note in obsidian vault
-notesmd-cli daily
+obs-cli daily
 
 # Creates / opens daily note in specified obsidian vault
-notesmd-cli daily --vault "{vault-name}"
+obs-cli daily --vault "{vault-name}"
 
 # Creates / opens daily note in your default editor
-notesmd-cli daily --editor
+obs-cli daily --editor
 
 # Adds content to daily note (appends if note already exists)
-notesmd-cli daily --content "abcde"
+obs-cli daily --content "abcde"
 
 # Adds content and opens in editor
-notesmd-cli daily --content "abcde" --editor
+obs-cli daily --content "abcde" --editor
 ```
 
 ### Search Note
@@ -316,13 +393,13 @@ Starts a fuzzy search displaying notes in the terminal from the vault. You can h
 
 ```bash
 # Searches in default obsidian vault
-notesmd-cli search
+obs-cli search
 
 # Searches in specified obsidian vault
-notesmd-cli search --vault "{vault-name}"
+obs-cli search --vault "{vault-name}"
 
 # Searches and opens selected note in your default editor
-notesmd-cli search --editor
+obs-cli search --editor
 
 ```
 
@@ -332,22 +409,22 @@ Searches for notes containing a term in note content. By default, it opens an in
 
 ```bash
 # Searches for content in default obsidian vault
-notesmd-cli search-content "search term"
+obs-cli search-content "search term"
 
 # Searches for content in specified obsidian vault
-notesmd-cli search-content "search term" --vault "{vault-name}"
+obs-cli search-content "search term" --vault "{vault-name}"
 
 # Searches and opens selected note in your default editor
-notesmd-cli search-content "search term" --editor
+obs-cli search-content "search term" --editor
 
 # Prints grep-style results to stdout (non-interactive)
-notesmd-cli search-content "search term" --no-interactive
+obs-cli search-content "search term" --no-interactive
 
 # Prints JSON for scripts (implies non-interactive mode)
-notesmd-cli search-content "search term" --format json
+obs-cli search-content "search term" --format json
 
 # Paginated results (default page size: 25, max: 100)
-notesmd-cli search-content "search term" --format json --page 1 --page-size 50
+obs-cli search-content "search term" --format json --page 1 --page-size 50
 
 ```
 
@@ -357,13 +434,13 @@ Lists files and folders in a vault path. If no path is provided, it lists the va
 
 ```bash
 # Lists vault root
-notesmd-cli list
+obs-cli list
 
 # Lists contents of a subfolder in default vault
-notesmd-cli list "001 Notes"
+obs-cli list "001 Notes"
 
 # Lists contents of a subfolder in specified vault
-notesmd-cli list "001 Notes" --vault "{vault-name}"
+obs-cli list "001 Notes" --vault "{vault-name}"
 
 ```
 
@@ -373,13 +450,13 @@ Prints the contents of given note name or path in Obsidian.
 
 ```bash
 # Prints note in default vault
-notesmd-cli print "{note-name}"
+obs-cli print "{note-name}"
 
 # Prints note by path in default vault
-notesmd-cli print "{note-path}"
+obs-cli print "{note-path}"
 
 # Prints note in specified obsidian
-notesmd-cli print "{note-name}" --vault "{vault-name}"
+obs-cli print "{note-name}" --vault "{vault-name}"
 
 ```
 
@@ -391,25 +468,25 @@ When the note name has no explicit path (no `/`), the CLI reads `.obsidian/app.j
 
 ```bash
 # Creates empty note in default vault
-notesmd-cli create "{note-name}"
+obs-cli create "{note-name}"
 
 # Creates empty note in specified vault
-notesmd-cli create "{note-name}" --vault "{vault-name}"
+obs-cli create "{note-name}" --vault "{vault-name}"
 
 # Creates note with content
-notesmd-cli create "{note-name}" --content "abcde"
+obs-cli create "{note-name}" --content "abcde"
 
 # Overwrites an existing note
-notesmd-cli create "{note-name}" --content "abcde" --overwrite
+obs-cli create "{note-name}" --content "abcde" --overwrite
 
 # Appends to an existing note
-notesmd-cli create "{note-name}" --content "abcde" --append
+obs-cli create "{note-name}" --content "abcde" --append
 
 # Creates note and opens it in Obsidian
-notesmd-cli create "{note-name}" --content "abcde" --open
+obs-cli create "{note-name}" --content "abcde" --open
 
 # Creates note and opens it in your default editor
-notesmd-cli create "{note-name}" --content "abcde" --open --editor
+obs-cli create "{note-name}" --content "abcde" --open --editor
 
 ```
 
@@ -419,16 +496,16 @@ Moves a given note(path from top level of vault) with new name given (top level 
 
 ```bash
 # Renames a note in default obsidian
-notesmd-cli move "{current-note-path}" "{new-note-path}"
+obs-cli move "{current-note-path}" "{new-note-path}"
 
 # Renames a note and given obsidian
-notesmd-cli move "{current-note-path}" "{new-note-path}" --vault "{vault-name}"
+obs-cli move "{current-note-path}" "{new-note-path}" --vault "{vault-name}"
 
 # Renames a note in default obsidian and opens it
-notesmd-cli move "{current-note-path}" "{new-note-path}" --open
+obs-cli move "{current-note-path}" "{new-note-path}" --open
 
 # Renames a note and opens it in your default editor
-notesmd-cli move "{current-note-path}" "{new-note-path}" --open --editor
+obs-cli move "{current-note-path}" "{new-note-path}" --open --editor
 ```
 
 ### Delete Note
@@ -437,10 +514,10 @@ Deletes a given note (path from top level of vault).
 
 ```bash
 # Deletes a note in default vault
-notesmd-cli delete "{note-path}"
+obs-cli delete "{note-path}"
 
 # Deletes a note in specified vault
-notesmd-cli delete "{note-path}" --vault "{vault-name}"
+obs-cli delete "{note-path}" --vault "{vault-name}"
 ```
 
 ### Frontmatter
@@ -449,16 +526,16 @@ View and modify YAML frontmatter in notes. Alias: `fm`
 
 ```bash
 # Print frontmatter of a note
-notesmd-cli frontmatter "{note-name}" --print
+obs-cli frontmatter "{note-name}" --print
 
 # Edit a frontmatter field (creates field if it doesn't exist)
-notesmd-cli frontmatter "{note-name}" --edit --key "status" --value "done"
+obs-cli frontmatter "{note-name}" --edit --key "status" --value "done"
 
 # Delete a frontmatter field
-notesmd-cli frontmatter "{note-name}" --delete --key "draft"
+obs-cli frontmatter "{note-name}" --delete --key "draft"
 
 # Use with a specific vault
-notesmd-cli frontmatter "{note-name}" --print --vault "{vault-name}"
+obs-cli frontmatter "{note-name}" --print --vault "{vault-name}"
 ```
 
 ## Deprecated Commands
@@ -480,9 +557,40 @@ The CLI respects Obsidian's **Excluded Files** setting (`Settings > Files & Link
 
 All other commands (`open`, `move`, `print`, `frontmatter`, etc.) still access excluded files as they refer to notes by name.
 
+## Releasing
+
+This project uses [GoReleaser](https://goreleaser.com/) to automatically build and publish binaries to [GitHub Releases](https://github.com/andy-neoaira/miniobsidian-cli/releases).
+
+**Trigger a release by pushing a version tag:**
+
+```bash
+# 1. Commit your changes
+git add .
+git commit -m "feat: your changes"
+
+# 2. Tag with a semantic version
+git tag v0.1.0
+
+# 3. Push the tag (this triggers the release workflow)
+git push origin master
+git push origin v0.1.0
+```
+
+The GitHub Actions workflow will:
+1. Run tests
+2. Build binaries for all supported platforms (Darwin, Linux, Windows, amd64 + arm64)
+3. Create a GitHub Release with downloadable archives
+
+Only pushes of tags matching `v*.*.*` will trigger a release. Regular pushes to branches will not.
+
 ## Contribution
 
-Fork the project, add your feature or fix and submit a pull request. You can also open an [issue](https://github.com/yakitrak/notesmd-cli/issues/new/choose) to report a bug or request a feature.
+Fork the project, add your feature or fix and submit a pull request. You can also open an [issue](https://github.com/andy-neoaira/miniobsidian-cli/issues/new/choose) to report a bug or request a feature.
+
+## Translations
+
+- [English](./README.md)
+- [简体中文](./README_CN.md)
 
 ## License
 
