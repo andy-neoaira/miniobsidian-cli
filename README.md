@@ -50,7 +50,7 @@ that works on top of your local folder of plain text notes. This CLI tool (writt
 
 ### Download Pre-built Binary
 
-The easiest way to install is to download a pre-built binary from the [GitHub Releases](https://github.com/andy-neoaira/miniobsidian-cli/releases) page.
+The easiest way to install is to download a pre-built binary from the [GitHub Releases](https://github.com/andy-neoaira/obs-cli/releases) page.
 
 **Supported platforms:**
 
@@ -66,7 +66,7 @@ The easiest way to install is to download a pre-built binary from the [GitHub Re
 
 ```bash
 # Download latest release for your platform
-curl -sL -o obs-cli.tar.gz "https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/obs-cli_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m).tar.gz"
+curl -sL -o obs-cli.tar.gz "https://github.com/andy-neoaira/obs-cli/releases/latest/download/obs-cli_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m).tar.gz"
 tar xzf obs-cli.tar.gz
 
 # Move to a directory in your PATH
@@ -80,7 +80,7 @@ mv obs-cli ~/bin/
 
 ```powershell
 # Download latest release
-Invoke-WebRequest -Uri "https://github.com/andy-neoaira/miniobsidian-cli/releases/latest/download/miniobsidian-cli_0.0.1_windows_amd64.tar.gz" -OutFile "obs-cli.tar.gz"
+Invoke-WebRequest -Uri "https://github.com/andy-neoaira/obs-cli/releases/latest/download/obs-cli_0.0.1_windows_amd64.tar.gz" -OutFile "obs-cli.tar.gz"
 
 # Extract
 tar xzf obs-cli.tar.gz
@@ -96,8 +96,8 @@ Requires [Go](https://go.dev/dl/) 1.19 or later.
 #### Quick Build
 
 ```bash
-git clone https://github.com/andy-neoaira/miniobsidian-cli.git
-cd miniobsidian-cli
+git clone https://github.com/andy-neoaira/obs-cli.git
+cd obs-cli
 go build -o obs-cli .
 sudo install -m 755 obs-cli /usr/local/bin/
 ```
@@ -143,8 +143,8 @@ GOOS=windows GOARCH=amd64 go build -o obs-cli-windows-amd64.exe .
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/andy-neoaira/miniobsidian-cli.git
-cd miniobsidian-cli
+git clone https://github.com/andy-neoaira/obs-cli.git
+cd obs-cli
 
 # 2. Download dependencies (using vendor mode)
 go mod vendor
@@ -168,7 +168,7 @@ After building, you can install the binary to your system:
 sudo cp obs-cli /usr/local/bin/
 
 # Or use go install (installs to $GOPATH/bin or $HOME/go/bin)
-go install github.com/andy-neoaira/miniobsidian-cli@latest
+go install github.com/andy-neoaira/obs-cli@latest
 
 # Verify installation
 obs-cli --version
@@ -546,7 +546,7 @@ All other commands (`open`, `move`, `print`, `frontmatter`, etc.) still access e
 
 ## Releasing
 
-This project uses [GoReleaser](https://goreleaser.com/) to automatically build and publish binaries to [GitHub Releases](https://github.com/andy-neoaira/miniobsidian-cli/releases).
+This project uses [GoReleaser](https://goreleaser.com/) to automatically build and publish binaries to [GitHub Releases](https://github.com/andy-neoaira/obs-cli/releases).
 
 **Trigger a release by pushing a version tag:**
 
@@ -572,7 +572,7 @@ Only pushes of tags matching `v*.*.*` will trigger a release. Regular pushes to 
 
 ## Contribution
 
-Fork the project, add your feature or fix and submit a pull request. You can also open an [issue](https://github.com/andy-neoaira/miniobsidian-cli/issues/new/choose) to report a bug or request a feature.
+Fork the project, add your feature or fix and submit a pull request. You can also open an [issue](https://github.com/andy-neoaira/obs-cli/issues/new/choose) to report a bug or request a feature.
 
 ## Translations
 

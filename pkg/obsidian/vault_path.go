@@ -3,7 +3,7 @@ package obsidian
 import (
 	"encoding/json"
 	"errors"
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/config"
+	"github.com/andy-neoaira/obs-cli/pkg/config"
 	"os"
 	"path/filepath"
 	"strings"

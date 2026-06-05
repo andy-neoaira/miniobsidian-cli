@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/stretchr/testify/assert"
 )
 

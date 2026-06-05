@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 )
 
 // PrintParams 定义了 print 命令所需的业务参数。

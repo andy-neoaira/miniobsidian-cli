@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for miniobsidian-cli
+about: Suggest an idea for obs-cli
 title: ''
 labels: ''
 assignees: ''

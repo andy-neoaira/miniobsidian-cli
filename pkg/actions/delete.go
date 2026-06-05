@@ -1,7 +1,7 @@
 package actions
 
 import (
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 )
 
 // DeleteParams 定义了 delete 命令所需的业务参数。

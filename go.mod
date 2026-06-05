@@ -1,4 +1,4 @@
-module github.com/andy-neoaira/miniobsidian-cli
+module github.com/andy-neoaira/obs-cli
 
 go 1.25.8
 

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/config"
+	"github.com/andy-neoaira/obs-cli/pkg/config"
 )
 
 // AddVault 将本地目录注册为 Obsidian vault。

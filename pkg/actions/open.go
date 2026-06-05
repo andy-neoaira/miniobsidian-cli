@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 )
 
 // OpenParams 定义了 open 命令所需的业务参数。

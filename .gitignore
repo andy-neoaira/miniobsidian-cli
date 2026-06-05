@@ -5,7 +5,9 @@
 *.so
 *.dylib
 .vscode
+obs-cli
 notesmd-cli
+.omc/
 
 # Test binary, built with `go test -c`
 *.test

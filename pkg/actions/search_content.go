@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 )
 
 // 支持的输出格式常量

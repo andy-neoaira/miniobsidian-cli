@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/actions"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"log"
 
 	"github.com/spf13/cobra"

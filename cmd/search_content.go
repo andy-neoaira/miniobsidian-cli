@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/actions"
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/pkg/actions"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )

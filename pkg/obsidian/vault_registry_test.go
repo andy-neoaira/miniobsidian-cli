@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/andy-neoaira/miniobsidian-cli/mocks"
-	"github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+	"github.com/andy-neoaira/obs-cli/mocks"
+	"github.com/andy-neoaira/obs-cli/pkg/obsidian"
 	"github.com/stretchr/testify/assert"
 )
 

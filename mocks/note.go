@@ -1,6 +1,6 @@
 package mocks
 
-import "github.com/andy-neoaira/miniobsidian-cli/pkg/obsidian"
+import "github.com/andy-neoaira/obs-cli/pkg/obsidian"
 
 // MockNoteManager 是 NoteManager 接口的 Mock 实现，用于单元测试。
 // 通过设置各个字段的值，可以控制 Mock 对象的行为（返回指定值或模拟错误）。

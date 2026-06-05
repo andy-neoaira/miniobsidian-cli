@@ -21,7 +21,7 @@ builds:
     flags:
       - -mod=vendor
     ldflags:
-      - -s -w -X github.com/andy-neoaira/miniobsidian-cli/cmd.Version={{.Version}}
+      - -s -w -X github.com/andy-neoaira/obs-cli/cmd.Version={{.Version}}
 
 # macOS Universal Binary（将 amd64 + arm64 合并为一个通用二进制）
 universal_binaries:
@@ -37,7 +37,7 @@ release:
     Download the appropriate archive for your platform from the assets below,
     extract it, and place the `obs-cli` binary in a directory on your `PATH`.
 
-    For more details, see the [Installation Guide](https://github.com/andy-neoaira/miniobsidian-cli#install).
+    For more details, see the [Installation Guide](https://github.com/andy-neoaira/obs-cli#install).
 
 changelog:
   sort: asc
