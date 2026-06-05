@@ -65,17 +65,7 @@ var setDefaultVaultCmd = &cobra.Command{
 }
 
 // setDefaultDeprecatedCmd 是已弃用的 "set-default" 命令，保留以兼容旧版本用户。
-var setDefaultDeprecatedCmd = &cobra.Command{
-	Use:        "set-default",
-	Short:      "Sets default vault and/or open type (deprecated: use set-default-vault)",
-	Args:       cobra.RangeArgs(0, 1),
-	Deprecated: "use set-default-vault instead",
-	Run:        runSetDefaultVault,
-}
-
 func init() {
 	setDefaultVaultCmd.Flags().String("open-type", "", "default open type: 'obsidian' (default) or 'editor'")
-	setDefaultDeprecatedCmd.Flags().String("open-type", "", "default open type: 'obsidian' (default) or 'editor'")
 	rootCmd.AddCommand(setDefaultVaultCmd)
-	rootCmd.AddCommand(setDefaultDeprecatedCmd)
 }

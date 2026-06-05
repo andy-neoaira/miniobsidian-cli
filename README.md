@@ -33,8 +33,8 @@
   - [Move / Rename Note](#move--rename-note)
   - [Delete Note](#delete-note)
   - [Frontmatter](#frontmatter)
-- [Deprecated Commands](#deprecated-commands)
 - [Excluded Files](#excluded-files)
+- [Releasing](#releasing)
 - [Contribution](#contribution)
 - [License](#license)
 
@@ -541,16 +541,6 @@ obs-cli frontmatter "{note-name}" --delete --key "draft"
 # Use with a specific vault
 obs-cli frontmatter "{note-name}" --print --vault "{vault-name}"
 ```
-
-## Deprecated Commands
-
-The following commands still work but print a deprecation warning to stderr (so pipes and scripts are unaffected). They will be removed in the next major version.
-
-| Old command | Replacement |
-|---|---|
-| `set-default` | `set-default-vault` |
-| `print-default` | `list-vaults --default` |
-| `print-default --path-only` | `list-vaults --default --path-only` |
 
 ## Excluded Files
 

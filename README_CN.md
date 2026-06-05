@@ -33,7 +33,6 @@
   - [移动 / 重命名笔记](#移动--重命名笔记)
   - [删除笔记](#删除笔记)
   - [Frontmatter](#frontmatter)
-- [已弃用命令](#已弃用命令)
 - [排除文件](#排除文件)
 - [参与贡献](#参与贡献)
 - [许可证](#许可证)
@@ -536,18 +535,6 @@ obs-cli frontmatter "{note-name}" --delete --key "draft"
 # 在指定 vault 中使用
 obs-cli frontmatter "{note-name}" --print --vault "{vault-name}"
 ```
-
----
-
-## 已弃用命令
-
-以下命令仍然可用，但会向标准错误输出弃用警告（因此不会影响管道和脚本）。它们将在下一个主要版本中移除。
-
-| 旧命令 | 替代命令 |
-|---|---|
-| `set-default` | `set-default-vault` |
-| `print-default` | `list-vaults --default` |
-| `print-default --path-only` | `list-vaults --default --path-only` |
 
 ---
 
