@@ -1,5 +1,7 @@
 # NotesMD CLI
 
+**中文** | [🇺🇸 English](./README.md)
+
 > **注意**：随着官方 Obsidian CLI 的发布，本项目已从 "Obsidian CLI" 更名为 "NotesMD CLI" 以避免混淆。NotesMD CLI **无需 Obsidian 正在运行**即可工作，非常适合脚本化、自动化和纯终端环境。
 
 ---
