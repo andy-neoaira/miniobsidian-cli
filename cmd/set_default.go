@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// runSetDefaultVault 是 set-default-vault 和 set-default（已弃用）命令的公共执行逻辑。
+// runSetDefaultVault 是 set-default-vault 命令的执行逻辑。
 // 它可以同时设置默认 vault 名称和默认打开方式（obsidian 或 editor）。
 func runSetDefaultVault(cmd *cobra.Command, args []string) {
 	openType, err := cmd.Flags().GetString("open-type")
@@ -64,7 +64,7 @@ var setDefaultVaultCmd = &cobra.Command{
 	Run:     runSetDefaultVault,
 }
 
-// setDefaultDeprecatedCmd 是已弃用的 "set-default" 命令，保留以兼容旧版本用户。
+// init 在包导入时自动执行，用于注册 set-default-vault 命令的 flag 并将其挂到根命令下。
 func init() {
 	setDefaultVaultCmd.Flags().String("open-type", "", "default open type: 'obsidian' (default) or 'editor'")
 	rootCmd.AddCommand(setDefaultVaultCmd)

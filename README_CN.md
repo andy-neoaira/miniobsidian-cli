@@ -1,8 +1,8 @@
-# NotesMD CLI
+# obs-cli
 
 **中文** | [🇺🇸 English](./README.md)
 
-> **注意**：随着官方 Obsidian CLI 的发布，本项目已从 "Obsidian CLI" 更名为 "NotesMD CLI" 以避免混淆。NotesMD CLI **无需 Obsidian 正在运行**即可工作，非常适合脚本化、自动化和纯终端环境。
+> **注意**：obs-cli **无需 Obsidian 正在运行**即可工作，非常适合脚本化、自动化和纯终端环境。
 
 ---
 
@@ -10,12 +10,9 @@
 
 - [项目描述](#项目描述)
 - [安装](#安装)
-  - [Windows](#windows)
-  - [Mac 和 Linux](#mac-和-linux)
-  - [Arch Linux (AUR)](#arch-linux-aur)
+  - [下载预编译二进制](#下载预编译二进制)
   - [从源码编译](#从源码编译)
   - [无图形界面 / 未安装 Obsidian](#无图形界面--未安装-obsidian)
-- [从旧版迁移](#从旧版迁移)
 - [使用指南](#使用指南)
   - [帮助信息](#帮助信息)
   - [编辑器标志](#编辑器标志)
@@ -221,12 +218,6 @@ obs-cli set-default-vault "personal"
    键（`any-unique-id`）可以是任意值。CLI 使用**目录名称**作为 vault 名称（例如上面的 `my-brain`）。请使用**绝对路径**，不要使用 `~`，因为 CLI 不会将其展开为主目录。
 
 </details>
-
----
-
-## 从旧版迁移
-
-**从 `obsidian-cli` v0.2.3 或更早版本升级？** 请参阅详细的[迁移指南](MIGRATION.md)，了解如何卸载旧版本、安装新版本以及迁移配置的逐步说明。
 
 ---
 

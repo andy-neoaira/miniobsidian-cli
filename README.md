@@ -1,8 +1,8 @@
-# NotesMD CLI
+# obs-cli
 
 [🇨🇳 中文](./README_CN.md) | **English**
 
-> **Note**: With the release of the official Obsidian CLI, this project has been renamed from "Obsidian CLI" to "NotesMD CLI" to avoid confusion. NotesMD CLI works **without requiring Obsidian to be running**, making it perfect for scripting, automation, and terminal-only environments.
+> **Note**: obs-cli works **without requiring Obsidian to be running**, making it perfect for scripting, automation, and terminal-only environments.
 
 ---
 
@@ -10,12 +10,9 @@
 
 - [Description](#description)
 - [Install](#install)
-  - [Windows](#windows)
-  - [Mac and Linux](#mac-and-linux)
-  - [Arch Linux (AUR)](#arch-linux-aur)
+  - [Download Pre-built Binary](#download-pre-built-binary)
   - [Build from Source](#build-from-source)
   - [Headless / No Obsidian Installed](#headless--no-obsidian-installed)
-- [Migrating from Obsidian CLI](#migrating-from-obsidian-cli)
 - [Usage](#usage)
   - [Help](#help)
   - [Editor Flag](#editor-flag)
@@ -226,10 +223,6 @@ You can then pass `--vault "work"` to target a specific vault.
 </details>
 
 ---
-
-## Migrating from Obsidian CLI
-
-**Upgrading from `obsidian-cli` v0.2.3 or earlier?** See the detailed [Migration Guide](MIGRATION.md) for step-by-step instructions on uninstalling the old version, installing Vault CLI, and migrating your configuration.
 
 ## Usage
 

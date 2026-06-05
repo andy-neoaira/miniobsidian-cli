@@ -36,7 +36,7 @@ ifndef VERSION
 endif
 	@echo "Starting release process for $(VERSION)..."
 	@# Update version in root.go
-	@sed -i '' 's/Version: "v[0-9]*\.[0-9]*\.[0-9]*"/Version: "$(VERSION)"/' cmd/root.go
+	@perl -pi -e 's/Version: "v[0-9]+\.[0-9]+\.[0-9]+"/Version: "$(VERSION)"/' cmd/root.go
 	@echo "✓ Updated version in root.go to $(VERSION)"
 	@# Create screenshot
 	@$(MAKE) update-usage-image
