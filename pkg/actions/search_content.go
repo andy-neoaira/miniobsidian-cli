@@ -20,21 +20,21 @@ const (
 
 // SearchContentOptions 定义了 search-content 命令的高级选项。
 type SearchContentOptions struct {
-	UseEditor           bool     // 是否使用编辑器打开
-	EditorFlagExplicit  bool     // --editor 是否是用户显式传入的
-	NoInteractive       bool     // 是否禁用交互式选择
-	Format              string   // 输出格式：text 或 json
-	InteractiveTerminal bool     // 当前是否在交互式终端中
+	UseEditor           bool      // 是否使用编辑器打开
+	EditorFlagExplicit  bool      // --editor 是否是用户显式传入的
+	NoInteractive       bool      // 是否禁用交互式选择
+	Format              string    // 输出格式：text 或 json
+	InteractiveTerminal bool      // 当前是否在交互式终端中
 	Output              io.Writer // 输出目标，默 os.Stdout
-	Page                int      // 分页页码
-	PageSize            int      // 每页结果数
+	Page                int       // 分页页码
+	PageSize            int       // 每页结果数
 }
 
 // searchContentJSONMatch 是 JSON 输出时单条结果的数据结构。
 type searchContentJSONMatch struct {
-	File      string `json:"file"`      // 笔记相对路径
-	Line      int    `json:"line"`      // 匹配行号
-	Content   string `json:"content"`   // 匹配行的内容摘要
+	File      string `json:"file"`       // 笔记相对路径
+	Line      int    `json:"line"`       // 匹配行号
+	Content   string `json:"content"`    // 匹配行的内容摘要
 	MatchType string `json:"match_type"` // 匹配类型：filename 或 content
 }
 
@@ -42,6 +42,7 @@ type searchContentJSONMatch struct {
 type searchContentPaginatedJSON struct {
 	Page            int                      `json:"page"`
 	PageSize        int                      `json:"page_size"`
+	TotalPages      int                      `json:"total_pages"`
 	TotalResults    int                      `json:"total_results"`
 	ReturnedResults int                      `json:"returned_results"`
 	HasMore         bool                     `json:"has_more"`
@@ -195,6 +196,8 @@ type paginationResult struct {
 }
 
 // paginateMatches 对搜索结果进行分页。
+// 注意：当请求页码超过总页数时，保留用户请求的页码并返回空结果，
+// 而不是静默夹到最后一页。这样脚本调用方可以准确判断分页已经结束。
 func paginateMatches(matches []obsidian.NoteMatch, options SearchContentOptions) paginationResult {
 	page := options.Page
 	pageSize := options.PageSize
@@ -213,9 +216,6 @@ func paginateMatches(matches []obsidian.NoteMatch, options SearchContentOptions)
 	totalPages := (total + pageSize - 1) / pageSize // 向上取整计算总页数
 	if totalPages == 0 {
 		totalPages = 1
-	}
-	if page > totalPages {
-		page = totalPages
 	}
 
 	start := (page - 1) * pageSize
@@ -287,6 +287,7 @@ func printMatches(matches []obsidian.NoteMatch, searchTerm string, format string
 			return encoder.Encode(searchContentPaginatedJSON{
 				Page:            pg.page,
 				PageSize:        pg.pageSize,
+				TotalPages:      pg.totalPages,
 				TotalResults:    len(matches),
 				ReturnedResults: len(result),
 				HasMore:         pg.hasMore,

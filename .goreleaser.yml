@@ -27,6 +27,15 @@ builds:
 universal_binaries:
   - replace: true
 
+archives:
+  - id: default
+    ids:
+      - obs-cli
+    # 固定资产命名，确保 /releases/latest/download/ 直链长期可用。
+    # macOS universal binary 在 GoReleaser 中的 Arch 为 "all"，因此会产出 darwin_all。
+    name_template: >-
+      {{ .ProjectName }}_{{ .Os }}_{{ if eq .Arch "all" }}all{{ else }}{{ .Arch }}{{ end }}
+
 release:
   prerelease: auto
   # 自动生成 Release 说明，按 commit 分组

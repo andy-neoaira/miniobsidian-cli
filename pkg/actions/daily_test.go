@@ -76,6 +76,25 @@ func TestDailyNote(t *testing.T) {
 		assert.Equal(t, "# Daily Note\n- [ ] Task", string(content))
 	})
 
+	t.Run("Rejects template path outside vault", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		obsDir := filepath.Join(tmpDir, ".obsidian")
+		if err := os.MkdirAll(obsDir, 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(obsDir, "daily-notes.json"), []byte(`{
+			"template": "../outside"
+		}`), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		vault := mocks.MockVaultOperator{Name: "myVault", PathValue: tmpDir}
+		uri := mocks.MockUriManager{}
+
+		err := actions.DailyNote(&vault, &uri, actions.DailyParams{})
+		assert.ErrorIs(t, err, obsidian.ErrPathTraversal)
+	})
+
 	t.Run("Does not overwrite existing daily note", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		notePath := filepath.Join(tmpDir, today+".md")

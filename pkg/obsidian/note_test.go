@@ -123,6 +123,39 @@ func TestNote_GetContents(t *testing.T) {
 		assert.Equal(t, fileContents, content2, "Expected contents to match the file contents")
 	})
 
+	t.Run("Basename lookup returns ambiguity error when multiple notes match", func(t *testing.T) {
+		tempDir := t.TempDir()
+		for _, dir := range []string{"ProjectA", "ProjectB"} {
+			notePath := filepath.Join(tempDir, dir, "README.md")
+			assert.NoError(t, os.MkdirAll(filepath.Dir(notePath), 0755))
+			assert.NoError(t, os.WriteFile(notePath, []byte(dir), 0644))
+		}
+
+		noteManager := obsidian.Note{}
+		content, err := noteManager.GetContents(tempDir, "README")
+
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), obsidian.NoteNameAmbiguousError)
+		assert.Contains(t, err.Error(), "ProjectA/README.md")
+		assert.Contains(t, err.Error(), "ProjectB/README.md")
+	})
+
+	t.Run("Explicit path still resolves when basename is ambiguous", func(t *testing.T) {
+		tempDir := t.TempDir()
+		for _, dir := range []string{"ProjectA", "ProjectB"} {
+			notePath := filepath.Join(tempDir, dir, "README.md")
+			assert.NoError(t, os.MkdirAll(filepath.Dir(notePath), 0755))
+			assert.NoError(t, os.WriteFile(notePath, []byte(dir), 0644))
+		}
+
+		noteManager := obsidian.Note{}
+		content, err := noteManager.GetContents(tempDir, "ProjectB/README")
+
+		assert.NoError(t, err)
+		assert.Equal(t, "ProjectB", content)
+	})
+
 	t.Run("Get contents of non-existent note", func(t *testing.T) {
 		// Arrange
 		noteManager := obsidian.Note{}
@@ -358,6 +391,50 @@ func TestUpdateNoteLinks_MixedFormats(t *testing.T) {
 		assert.Contains(t, contentStr, "[[newNote]]")
 		assert.Contains(t, contentStr, "(newFolder/newNote.md)")
 		assert.Contains(t, contentStr, "(./newFolder/newNote.md)")
+	})
+}
+
+func TestUpdateNoteLinks_AmbiguousBasename(t *testing.T) {
+	t.Run("Skip basename wikilinks when path-based note has duplicate basenames", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		// vault 中存在两个 oldNote.md。此时 [[oldNote]] 无法唯一指向 folder/oldNote，
+		// move 只能安全更新带路径的链接，裸 basename 链接必须保留。
+		assert.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "folder"), 0755))
+		assert.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "other"), 0755))
+		assert.NoError(t, os.WriteFile(filepath.Join(tmpDir, "folder", "oldNote.md"), []byte("target"), 0644))
+		assert.NoError(t, os.WriteFile(filepath.Join(tmpDir, "other", "oldNote.md"), []byte("duplicate"), 0644))
+
+		linkFile := filepath.Join(tmpDir, "links.md")
+		content := []byte("Path [[folder/oldNote]] and ambiguous [[oldNote]] and md [x](folder/oldNote.md)")
+		assert.NoError(t, os.WriteFile(linkFile, content, 0644))
+
+		noteManager := obsidian.Note{}
+		err := noteManager.UpdateLinks(tmpDir, "folder/oldNote", "folder/newNote")
+		assert.NoError(t, err)
+
+		newContent, err := os.ReadFile(linkFile)
+		assert.NoError(t, err)
+		assert.Contains(t, string(newContent), "[[folder/newNote]]")
+		assert.Contains(t, string(newContent), "[[oldNote]]")
+		assert.Contains(t, string(newContent), "(folder/newNote.md)")
+	})
+}
+
+func TestUpdateNoteLinks_SkipsFencedCode(t *testing.T) {
+	t.Run("Does not update links inside fenced code blocks", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		testFile := filepath.Join(tmpDir, "test.md")
+		content := []byte("Normal [[oldNote]]\n```markdown\nExample [[oldNote]]\n```\nAfter [[oldNote]]")
+		assert.NoError(t, os.WriteFile(testFile, content, 0644))
+
+		noteManager := obsidian.Note{}
+		err := noteManager.UpdateLinks(tmpDir, "oldNote", "newNote")
+		assert.NoError(t, err)
+
+		newContent, err := os.ReadFile(testFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "Normal [[newNote]]\n```markdown\nExample [[oldNote]]\n```\nAfter [[newNote]]", string(newContent))
 	})
 }
 

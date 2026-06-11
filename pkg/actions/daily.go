@@ -58,7 +58,12 @@ func DailyNote(vault obsidian.VaultManager, uri obsidian.UriManager, params Dail
 	// 如果配置了模板，尝试读取模板内容
 	templateContent := ""
 	if config.Template != "" {
-		templatePath := filepath.Join(vaultPath, obsidian.AddMdSuffix(config.Template))
+		// 模板路径来自 vault 内的 .obsidian 配置文件，同样必须经过 ValidatePath。
+		// 这样即使配置被误写成 "../../secret"，也不会读取 vault 外部文件。
+		templatePath, err := obsidian.ValidatePath(vaultPath, obsidian.AddMdSuffix(config.Template))
+		if err != nil {
+			return err
+		}
 		if data, readErr := os.ReadFile(templatePath); readErr == nil {
 			templateContent = string(data)
 		}

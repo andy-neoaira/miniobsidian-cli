@@ -7,14 +7,20 @@ install-hooks:
 
 build-all:
 	GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/darwin/${BINARY_NAME}
+	GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o bin/darwin-arm64/${BINARY_NAME}
 	GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/linux/${BINARY_NAME}
+	GOOS=linux GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o bin/linux-arm64/${BINARY_NAME}
 	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/windows/${BINARY_NAME}.exe
+	GOOS=windows GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o bin/windows-arm64/${BINARY_NAME}.exe
 
 clean-all:
 	go clean
-	rm bin/darwin/${BINARY_NAME}
-	rm bin/linux/${BINARY_NAME}
-	rm bin/windows/${BINARY_NAME}.exe
+	rm -f bin/darwin/${BINARY_NAME}
+	rm -f bin/darwin-arm64/${BINARY_NAME}
+	rm -f bin/linux/${BINARY_NAME}
+	rm -f bin/linux-arm64/${BINARY_NAME}
+	rm -f bin/windows/${BINARY_NAME}.exe
+	rm -f bin/windows-arm64/${BINARY_NAME}.exe
 
 test:
 	go test ./...
@@ -26,6 +32,7 @@ test-coverage:
 	go test ./... -coverprofile=coverage.out
 
 update-usage-image:
+	@command -v freeze >/dev/null 2>&1 || { echo "freeze is required to generate docs/usage.png"; exit 1; }
 	freeze --execute "go run main.go --help" --theme dracula  --output docs/usage.png
 
 # Release automation
@@ -38,14 +45,11 @@ endif
 	@# Update version in root.go
 	@perl -pi -e 's/Version: "v[0-9]+\.[0-9]+\.[0-9]+"/Version: "$(VERSION)"/' cmd/root.go
 	@echo "✓ Updated version in root.go to $(VERSION)"
-	@# Create screenshot
-	@$(MAKE) update-usage-image
-	@echo "✓ Created usage screenshot"
 	@# Build all binaries
 	@$(MAKE) build-all
 	@echo "✓ Built binaries for all platforms"
 	@# Git operations
-	@git add cmd/root.go docs/usage.png
+	@git add cmd/root.go
 	@git commit -m "chore: bump version to $(VERSION)"
 	@git tag $(VERSION)
 	@git push origin main

@@ -11,6 +11,7 @@ import (
 var shouldAppend bool
 var shouldOverwrite bool
 var content string
+var contentFile string
 var createNoteCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"c"},
@@ -20,16 +21,20 @@ var createNoteCmd = &cobra.Command{
 		vault := obsidian.Vault{Name: vaultName}
 		uri := obsidian.Uri{}
 		noteName := args[0]
+		resolvedContent, err := resolveContentInput(content, contentFile)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		params := actions.CreateParams{
 			NoteName:        noteName,
-			Content:         content,
+			Content:         resolvedContent,
 			ShouldAppend:    shouldAppend,
 			ShouldOverwrite: shouldOverwrite,
 			ShouldOpen:      shouldOpen,
 			UseEditor:       resolveUseEditor(cmd, &vault),
 		}
-		err := actions.CreateNote(&vault, &uri, params)
+		err = actions.CreateNote(&vault, &uri, params)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -40,6 +45,7 @@ func init() {
 	createNoteCmd.Flags().StringVarP(&vaultName, "vault", "v", "", "vault name")
 	createNoteCmd.Flags().BoolVarP(&shouldOpen, "open", "", false, "open created note")
 	createNoteCmd.Flags().StringVarP(&content, "content", "c", "", "text to add to note")
+	createNoteCmd.Flags().StringVar(&contentFile, "content-file", "", "read note content from a file, or '-' for stdin")
 	createNoteCmd.Flags().BoolVarP(&shouldAppend, "append", "a", false, "append to note")
 	createNoteCmd.Flags().BoolVarP(&shouldOverwrite, "overwrite", "o", false, "overwrite note")
 	createNoteCmd.Flags().BoolP("editor", "e", false, "open in editor instead of Obsidian (requires --open flag)")

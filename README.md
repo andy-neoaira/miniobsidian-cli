@@ -37,8 +37,6 @@
 
 ---
 
-## ![obs-cli Usage](./docs/usage.png)
-
 ## Description
 
 Obsidian is a powerful and extensible knowledge base application
@@ -56,17 +54,30 @@ The easiest way to install is to download a pre-built binary from the [GitHub Re
 
 | OS | Architecture | Release Asset Name |
 |---|---|---|
-| macOS (Universal) | amd64 + arm64 | `obs-cli_0.0.1_darwin_all.tar.gz` |
-| Linux | amd64 | `obs-cli_0.0.1_linux_amd64.tar.gz` |
-| Linux | arm64 | `obs-cli_0.0.1_linux_arm64.tar.gz` |
-| Windows | amd64 | `obs-cli_0.0.1_windows_amd64.tar.gz` |
-| Windows | arm64 | `obs-cli_0.0.1_windows_arm64.tar.gz` |
+| macOS (Universal) | amd64 + arm64 | `obs-cli_darwin_all.tar.gz` |
+| Linux | amd64 | `obs-cli_linux_amd64.tar.gz` |
+| Linux | arm64 | `obs-cli_linux_arm64.tar.gz` |
+| Windows | amd64 | `obs-cli_windows_amd64.tar.gz` |
+| Windows | arm64 | `obs-cli_windows_arm64.tar.gz` |
 
 **One-line install (macOS / Linux):**
 
 ```bash
-# Download latest release for your platform
-curl -sL -o obs-cli.tar.gz "https://github.com/andy-neoaira/obs-cli/releases/latest/download/obs-cli_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m).tar.gz"
+os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+arch="$(uname -m)"
+
+case "$os" in
+  darwin) asset_os="darwin"; asset_arch="all" ;;
+  linux) asset_os="linux"; asset_arch="$arch" ;;
+  *) echo "Unsupported OS: $os" >&2; exit 1 ;;
+esac
+
+case "$asset_arch" in
+  x86_64) asset_arch="amd64" ;;
+  aarch64) asset_arch="arm64" ;;
+esac
+
+curl -sL -o obs-cli.tar.gz "https://github.com/andy-neoaira/obs-cli/releases/latest/download/obs-cli_${asset_os}_${asset_arch}.tar.gz"
 tar xzf obs-cli.tar.gz
 
 # Move to a directory in your PATH
@@ -80,7 +91,7 @@ mv obs-cli ~/bin/
 
 ```powershell
 # Download latest release
-Invoke-WebRequest -Uri "https://github.com/andy-neoaira/obs-cli/releases/latest/download/obs-cli_0.0.1_windows_amd64.tar.gz" -OutFile "obs-cli.tar.gz"
+Invoke-WebRequest -Uri "https://github.com/andy-neoaira/obs-cli/releases/latest/download/obs-cli_windows_amd64.tar.gz" -OutFile "obs-cli.tar.gz"
 
 # Extract
 tar xzf obs-cli.tar.gz
@@ -380,6 +391,12 @@ obs-cli daily --editor
 # Adds content to daily note (appends if note already exists)
 obs-cli daily --content "abcde"
 
+# Adds multi-line content safely from a file
+obs-cli daily --content-file ./daily-entry.md
+
+# Adds content safely from stdin
+printf '%s\n' "## Work Log" "- shipped feature" | obs-cli daily --content-file -
+
 # Adds content and opens in editor
 obs-cli daily --content "abcde" --editor
 ```
@@ -444,6 +461,7 @@ obs-cli list "001 Notes" --vault "{vault-name}"
 ### Print Note
 
 Prints the contents of given note name or path in Obsidian.
+If a bare note name matches multiple files, use the full vault-relative path to disambiguate.
 
 ```bash
 # Prints note in default vault
@@ -472,6 +490,12 @@ obs-cli create "{note-name}" --vault "{vault-name}"
 
 # Creates note with content
 obs-cli create "{note-name}" --content "abcde"
+
+# Creates note with multi-line content from a file
+obs-cli create "{note-name}" --content-file ./note.md
+
+# Creates note with content from stdin
+printf '%s\n' "# Title" "Body text" | obs-cli create "{note-name}" --content-file -
 
 # Overwrites an existing note
 obs-cli create "{note-name}" --content "abcde" --overwrite
@@ -520,6 +544,7 @@ obs-cli delete "{note-path}" --vault "{vault-name}"
 ### Frontmatter
 
 View and modify YAML frontmatter in notes. Alias: `fm`
+If a bare note name matches multiple files, the command fails instead of editing an arbitrary match.
 
 ```bash
 # Print frontmatter of a note
@@ -541,8 +566,9 @@ The CLI respects Obsidian's **Excluded Files** setting (`Settings > Files & Link
 
 - `search` - excluded notes won't appear in the fuzzy finder
 - `search-content` - excluded folders won't be searched
+- `print` / `frontmatter` - bare-name lookup ignores excluded folders; explicit paths still work
 
-All other commands (`open`, `move`, `print`, `frontmatter`, etc.) still access excluded files as they refer to notes by name.
+Other explicit-path commands (`open`, `move`, `delete`, etc.) can still access excluded files when you provide the exact path.
 
 ## Releasing
 

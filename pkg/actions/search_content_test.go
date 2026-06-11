@@ -369,6 +369,7 @@ func TestSearchNotesContent(t *testing.T) {
 		assert.NoError(t, decodeErr)
 		assert.Equal(t, float64(1), result["page"])
 		assert.Equal(t, float64(1), result["page_size"])
+		assert.Equal(t, float64(2), result["total_pages"])
 		assert.Equal(t, float64(2), result["total_results"])
 		assert.Equal(t, float64(1), result["returned_results"])
 		assert.Equal(t, true, result["has_more"])
@@ -436,7 +437,7 @@ func TestSearchNotesContent(t *testing.T) {
 		assert.Len(t, result, 2)
 	})
 
-	t.Run("Out-of-range page is clamped to last page", func(t *testing.T) {
+	t.Run("Out-of-range page returns empty page instead of clamping", func(t *testing.T) {
 		vault := mocks.MockVaultOperator{Name: "myVault"}
 		uri := mocks.MockUriManager{}
 		note := mocks.MockNoteManager{}
@@ -455,9 +456,11 @@ func TestSearchNotesContent(t *testing.T) {
 		var result map[string]any
 		decodeErr := json.Unmarshal(output.Bytes(), &result)
 		assert.NoError(t, decodeErr)
-		assert.Equal(t, float64(1), result["page"])
-		assert.Equal(t, float64(2), result["returned_results"])
+		assert.Equal(t, float64(999), result["page"])
+		assert.Equal(t, float64(1), result["total_pages"])
+		assert.Equal(t, float64(0), result["returned_results"])
 		assert.Equal(t, false, result["has_more"])
+		assert.Len(t, result["results"], 0)
 	})
 
 	t.Run("Page-size only defaults to page 1", func(t *testing.T) {
