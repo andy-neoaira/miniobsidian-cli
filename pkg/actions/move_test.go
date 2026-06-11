@@ -16,8 +16,9 @@ func TestMoveNote(t *testing.T) {
 		vault := mocks.MockVaultOperator{Name: "myVault"}
 		uri := mocks.MockUriManager{}
 		note := mocks.MockNoteManager{}
+		linkRewriter := mocks.MockLinkRewriter{}
 		// Act
-		err := actions.MoveNote(&vault, &note, &uri, actions.MoveParams{
+		err := actions.MoveNote(&vault, &note, &linkRewriter, &uri, actions.MoveParams{
 			CurrentNoteName: "string",
 			NewNoteName:     "string",
 			ShouldOpen:      true,
@@ -32,7 +33,7 @@ func TestMoveNote(t *testing.T) {
 			DefaultNameErr: errors.New("Failed to get vault name"),
 		}
 		// Act
-		err := actions.MoveNote(&vault, &mocks.MockNoteManager{}, &mocks.MockUriManager{}, actions.MoveParams{
+		err := actions.MoveNote(&vault, &mocks.MockNoteManager{}, &mocks.MockLinkRewriter{}, &mocks.MockUriManager{}, actions.MoveParams{
 			CurrentNoteName: "string",
 			NewNoteName:     "string",
 			ShouldOpen:      true,
@@ -47,7 +48,7 @@ func TestMoveNote(t *testing.T) {
 			PathError: errors.New("Failed to get vault path"),
 		}
 		// Act
-		err := actions.MoveNote(vaultOp, &mocks.MockNoteManager{}, &mocks.MockUriManager{}, actions.MoveParams{
+		err := actions.MoveNote(vaultOp, &mocks.MockNoteManager{}, &mocks.MockLinkRewriter{}, &mocks.MockUriManager{}, actions.MoveParams{
 			CurrentNoteName: "string",
 			NewNoteName:     "string",
 			ShouldOpen:      false,
@@ -62,7 +63,7 @@ func TestMoveNote(t *testing.T) {
 			MoveErr: errors.New("Failed to execute URI"),
 		}
 		// Act
-		err := actions.MoveNote(&mocks.MockVaultOperator{}, &note, &mocks.MockUriManager{}, actions.MoveParams{
+		err := actions.MoveNote(&mocks.MockVaultOperator{}, &note, &mocks.MockLinkRewriter{}, &mocks.MockUriManager{}, actions.MoveParams{
 			CurrentNoteName: "string",
 			NewNoteName:     "string",
 			ShouldOpen:      false,
@@ -71,19 +72,19 @@ func TestMoveNote(t *testing.T) {
 		assert.Equal(t, err, note.MoveErr)
 	})
 
-	t.Run("note.UpdateLinks returns an error", func(t *testing.T) {
+	t.Run("linkRewriter.UpdateLinks returns an error", func(t *testing.T) {
 		// Arrange
-		note := mocks.MockNoteManager{
+		linkRewriter := mocks.MockLinkRewriter{
 			UpdateLinksError: errors.New("Failed to execute URI"),
 		}
 		// Act
-		err := actions.MoveNote(&mocks.MockVaultOperator{}, &note, &mocks.MockUriManager{}, actions.MoveParams{
+		err := actions.MoveNote(&mocks.MockVaultOperator{}, &mocks.MockNoteManager{}, &linkRewriter, &mocks.MockUriManager{}, actions.MoveParams{
 			CurrentNoteName: "string",
 			NewNoteName:     "string",
 			ShouldOpen:      false,
 		})
 		// Assert
-		assert.Equal(t, err, note.UpdateLinksError)
+		assert.Equal(t, err, linkRewriter.UpdateLinksError)
 	})
 
 	t.Run("uri.Execute returns an error", func(t *testing.T) {
@@ -92,7 +93,7 @@ func TestMoveNote(t *testing.T) {
 			ExecuteErr: errors.New("Failed to execute URI"),
 		}
 		// Act
-		err := actions.MoveNote(&mocks.MockVaultOperator{}, &mocks.MockNoteManager{}, uriManager, actions.MoveParams{
+		err := actions.MoveNote(&mocks.MockVaultOperator{}, &mocks.MockNoteManager{}, &mocks.MockLinkRewriter{}, uriManager, actions.MoveParams{
 			CurrentNoteName: "string",
 			NewNoteName:     "string",
 			ShouldOpen:      true,
@@ -107,6 +108,7 @@ func TestMoveNote(t *testing.T) {
 		vault := mocks.MockVaultOperator{Name: "myVault"}
 		uri := mocks.MockUriManager{}
 		note := mocks.MockNoteManager{}
+		linkRewriter := mocks.MockLinkRewriter{}
 
 		// Set EDITOR to a command that will succeed
 		originalEditor := os.Getenv("EDITOR")
@@ -114,7 +116,7 @@ func TestMoveNote(t *testing.T) {
 		os.Setenv("EDITOR", "true")
 
 		// Act
-		err := actions.MoveNote(&vault, &note, &uri, actions.MoveParams{
+		err := actions.MoveNote(&vault, &note, &linkRewriter, &uri, actions.MoveParams{
 			CurrentNoteName: "old.md",
 			NewNoteName:     "new.md",
 			ShouldOpen:      true,
@@ -130,6 +132,7 @@ func TestMoveNote(t *testing.T) {
 		vault := mocks.MockVaultOperator{Name: "myVault"}
 		uri := mocks.MockUriManager{}
 		note := mocks.MockNoteManager{}
+		linkRewriter := mocks.MockLinkRewriter{}
 
 		// Set EDITOR to a command that will fail
 		originalEditor := os.Getenv("EDITOR")
@@ -137,7 +140,7 @@ func TestMoveNote(t *testing.T) {
 		os.Setenv("EDITOR", "false")
 
 		// Act
-		err := actions.MoveNote(&vault, &note, &uri, actions.MoveParams{
+		err := actions.MoveNote(&vault, &note, &linkRewriter, &uri, actions.MoveParams{
 			CurrentNoteName: "old.md",
 			NewNoteName:     "new.md",
 			ShouldOpen:      true,
@@ -153,9 +156,10 @@ func TestMoveNote(t *testing.T) {
 		vault := mocks.MockVaultOperator{Name: "myVault"}
 		uri := mocks.MockUriManager{}
 		note := mocks.MockNoteManager{}
+		linkRewriter := mocks.MockLinkRewriter{}
 
 		// Act - UseEditor is true but ShouldOpen is false
-		err := actions.MoveNote(&vault, &note, &uri, actions.MoveParams{
+		err := actions.MoveNote(&vault, &note, &linkRewriter, &uri, actions.MoveParams{
 			CurrentNoteName: "old.md",
 			NewNoteName:     "new.md",
 			ShouldOpen:      false,

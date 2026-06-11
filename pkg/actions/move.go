@@ -14,7 +14,10 @@ type MoveParams struct {
 
 // MoveNote 是 "move" 命令的业务核心。
 // 流程：校验原路径和新路径 → 移动文件 → 更新 vault 中所有指向该笔记的链接 →（可选）打开新笔记。
-func MoveNote(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidian.UriManager, params MoveParams) error {
+//
+// note 只负责文件移动，linkRewriter 只负责内容中的链接重写。
+// 这两个依赖分开传入，是为了避免 NoteManager 继续承担链接解析策略，保持职责边界清晰。
+func MoveNote(vault obsidian.VaultManager, note obsidian.NoteManager, linkRewriter obsidian.LinkRewriteManager, uri obsidian.UriManager, params MoveParams) error {
 	vaultName, err := vault.DefaultName()
 	if err != nil {
 		return err
@@ -41,7 +44,7 @@ func MoveNote(vault obsidian.VaultManager, note obsidian.NoteManager, uri obsidi
 	}
 
 	// 遍历 vault 中所有笔记，将旧链接替换为新链接，保持笔记间引用关系
-	err = note.UpdateLinks(vaultPath, params.CurrentNoteName, params.NewNoteName)
+	err = linkRewriter.UpdateLinks(vaultPath, params.CurrentNoteName, params.NewNoteName)
 	if err != nil {
 		return err
 	}

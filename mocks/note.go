@@ -7,7 +7,6 @@ import "github.com/andy-neoaira/obs-cli/pkg/obsidian"
 type MockNoteManager struct {
 	DeleteErr           error                // 模拟 Delete() 返回的错误
 	MoveErr             error                // 模拟 Move() 返回的错误
-	UpdateLinksError    error                // 模拟 UpdateLinks() 返回的错误
 	GetContentsError    error                // 模拟 GetContents() 返回的错误
 	SetContentsError    error                // 模拟 SetContents() 返回的错误
 	FindBacklinksErr    error                // 模拟 FindBacklinks() 返回的错误
@@ -22,10 +21,6 @@ func (m *MockNoteManager) Delete(string) error {
 
 func (m *MockNoteManager) Move(string, string) error {
 	return m.MoveErr
-}
-
-func (m *MockNoteManager) UpdateLinks(string, string, string) error {
-	return m.UpdateLinksError
 }
 
 func (m *MockNoteManager) GetContents(string, string) (string, error) {

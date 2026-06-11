@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -34,7 +33,6 @@ type NoteMatch struct {
 type NoteManager interface {
 	Move(string, string) error
 	Delete(string) error
-	UpdateLinks(string, string, string) error
 	GetContents(string, string) (string, error)
 	SetContents(string, string, string) error
 	GetNotesList(string) ([]string, error)
@@ -192,102 +190,10 @@ func (m *Note) SetContents(vaultPath string, noteName string, content string) er
 }
 
 // UpdateLinks 遍历 vault 中所有笔记，将指向旧笔记的链接更新为新笔记的链接。
-// 这是 move 命令的重要后续操作，保证笔记间的引用关系不会断裂。
+// 这是为了兼容 NoteManager 接口保留的委托方法；具体链接解析和重写策略由 LinkRewriter 负责。
 func (m *Note) UpdateLinks(vaultPath string, oldNoteName string, newNoteName string) error {
-	excluded := ExcludedPaths(vaultPath)
-	includeBaseLinks := shouldUpdateBasenameLinks(vaultPath, oldNoteName)
-	replacements := GenerateLinkReplacementsWithOptions(oldNoteName, newNoteName, includeBaseLinks)
-
-	err := filepath.Walk(vaultPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return errors.New(VaultAccessError)
-		}
-
-		if ShouldSkipDirectoryOrFile(info) {
-			return nil
-		}
-		relPath, relErr := filepath.Rel(vaultPath, path)
-		if relErr != nil {
-			return errors.New(VaultAccessError)
-		}
-		if IsExcluded(relPath, excluded) {
-			return nil
-		}
-
-		originalContent, err := os.ReadFile(path)
-		if err != nil {
-			return errors.New(VaultReadError)
-		}
-
-		// 执行替换时跳过 fenced code block，避免修改代码示例中的链接文本。
-		updatedContent := ReplaceContentSkippingFencedCode(originalContent, replacements)
-
-		// 如果没有实际变化，跳过写入以提高性能
-		if bytes.Equal(originalContent, updatedContent) {
-			return nil
-		}
-
-		err = os.WriteFile(path, updatedContent, info.Mode())
-		if err != nil {
-			return errors.New(VaultWriteError)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// shouldUpdateBasenameLinks 判断 move 时是否可以安全更新 [[basename]] 链接。
-//
-// 当 oldNoteName 本身就是纯文件名时，用户表达的就是 basename 级移动/重命名，可以更新。
-// 当 oldNoteName 带目录时，如果 vault 内有多个同名 Markdown 文件，[[basename]] 无法唯一指向旧文件，
-// 此时只更新 [[folder/name]] 和 Markdown 路径链接，避免误改其他同名笔记的引用。
-func shouldUpdateBasenameLinks(vaultPath, oldNoteName string) bool {
-	oldNormalized := normalizePathSeparators(oldNoteName)
-	oldPathNoExt := RemoveMdSuffix(oldNormalized)
-	oldBase := RemoveMdSuffix(path.Base(oldNormalized))
-	if oldPathNoExt == oldBase {
-		return true
-	}
-
-	matches, err := countMarkdownFilesByBase(vaultPath, oldBase)
-	if err != nil {
-		return false
-	}
-	return matches <= 1
-}
-
-// countMarkdownFilesByBase 统计 vault 中同 basename 的 Markdown 文件数量。
-// 统计遵守隐藏目录和 Obsidian ignore 配置，和用户可见的笔记集合保持一致。
-func countMarkdownFilesByBase(vaultPath, baseNoExt string) (int, error) {
-	excluded := ExcludedPaths(vaultPath)
-	target := AddMdSuffix(baseNoExt)
-	count := 0
-	err := filepath.WalkDir(vaultPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if isHiddenDir(d) {
-			return filepath.SkipDir
-		}
-		relPath, err := filepath.Rel(vaultPath, path)
-		if err != nil {
-			return err
-		}
-		if relPath != "." && IsExcluded(relPath, excluded) {
-			if d.IsDir() {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if !d.IsDir() && filepath.Base(path) == target {
-			count++
-		}
-		return nil
-	})
-	return count, err
+	rewriter := LinkRewriter{}
+	return rewriter.UpdateLinks(vaultPath, oldNoteName, newNoteName)
 }
 
 // GetNotesList 获取 vault 中所有 .md 笔记的相对路径列表。

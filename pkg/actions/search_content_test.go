@@ -20,7 +20,6 @@ type CustomMockNoteForSingleMatch struct{}
 
 func (m *CustomMockNoteForSingleMatch) Delete(string) error                        { return nil }
 func (m *CustomMockNoteForSingleMatch) Move(string, string) error                  { return nil }
-func (m *CustomMockNoteForSingleMatch) UpdateLinks(string, string, string) error   { return nil }
 func (m *CustomMockNoteForSingleMatch) GetContents(string, string) (string, error) { return "", nil }
 func (m *CustomMockNoteForSingleMatch) SetContents(string, string, string) error   { return nil }
 func (m *CustomMockNoteForSingleMatch) GetNotesList(string) ([]string, error)      { return nil, nil }

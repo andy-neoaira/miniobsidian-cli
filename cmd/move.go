@@ -23,6 +23,7 @@ var moveCmd = &cobra.Command{
 		newName := args[1]
 		vault := obsidian.Vault{Name: vaultName}
 		note := obsidian.Note{}
+		linkRewriter := obsidian.LinkRewriter{}
 		uri := obsidian.Uri{}
 		params := actions.MoveParams{
 			CurrentNoteName: currentName,
@@ -30,7 +31,7 @@ var moveCmd = &cobra.Command{
 			ShouldOpen:      shouldOpen,
 			UseEditor:       resolveUseEditor(cmd, &vault),
 		}
-		err := actions.MoveNote(&vault, &note, &uri, params)
+		err := actions.MoveNote(&vault, &note, &linkRewriter, &uri, params)
 		if err != nil {
 			log.Fatal(err)
 		}

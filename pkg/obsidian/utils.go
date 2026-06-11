@@ -1,7 +1,6 @@
 package obsidian
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,12 +24,6 @@ func RemoveMdSuffix(str string) string {
 		return strings.TrimSuffix(str, ".md")
 	}
 	return str
-}
-
-// normalizePathSeparators 将反斜杠转换为正斜杠，保证跨平台一致性。
-// Obsidian 在所有操作系统中都使用正斜杠作为链接分隔符。
-func normalizePathSeparators(path string) string {
-	return strings.ReplaceAll(path, "\\", "/")
 }
 
 // wikiLinkPatterns 返回一个笔记名称对应的三种 wikilink 模式：
@@ -78,91 +71,6 @@ func GenerateBacklinkSearchPatterns(notePath string) []string {
 	)
 
 	return patterns
-}
-
-// GenerateLinkReplacements 创建移动笔记时需要替换的链接映射表。
-// 默认包含 basename wikilink 替换，保持旧版本行为。
-func GenerateLinkReplacements(oldNotePath, newNotePath string) map[string]string {
-	return GenerateLinkReplacementsWithOptions(oldNotePath, newNotePath, true)
-}
-
-// GenerateLinkReplacementsWithOptions 创建移动笔记时需要替换的链接映射表。
-// 它会处理各种 Obsidian 链接格式：简单 wikilink、路径 wikilink、Markdown 链接。
-// 所有路径都会被归一化为正斜杠，以保证跨平台一致。
-//
-// includeBaseLinks 用于控制是否替换 [[basename]] 这类不带目录的链接。
-// 当 vault 中存在多个同名笔记时，basename 链接无法唯一确定目标，调用方应传 false，
-// 只更新路径明确的链接，避免把无关笔记的引用误改掉。
-func GenerateLinkReplacementsWithOptions(oldNotePath, newNotePath string, includeBaseLinks bool) map[string]string {
-	replacements := make(map[string]string)
-
-	// 将路径归一化为正斜杠，确保匹配一致
-	oldNormalized := normalizePathSeparators(oldNotePath)
-	newNormalized := normalizePathSeparators(newNotePath)
-
-	// 取 basename（不含扩展名）
-	oldBase := RemoveMdSuffix(path.Base(oldNormalized))
-	newBase := RemoveMdSuffix(path.Base(newNormalized))
-
-	// 取完整路径（不含扩展名）
-	oldPathNoExt := RemoveMdSuffix(oldNormalized)
-	newPathNoExt := RemoveMdSuffix(newNormalized)
-
-	// 1. 简单 wikilink（仅 basename）——仅在调用方确认无歧义时替换
-	if includeBaseLinks {
-		replacements["[["+oldBase+"]]"] = "[[" + newBase + "]]"
-		replacements["[["+oldBase+"|"] = "[[" + newBase + "|"
-		replacements["[["+oldBase+"#"] = "[[" + newBase + "#"
-	}
-
-	// 2. 基于路径的 wikilink（路径与 basename 不同时）
-	if oldPathNoExt != oldBase {
-		replacements["[["+oldPathNoExt+"]]"] = "[[" + newPathNoExt + "]]"
-		replacements["[["+oldPathNoExt+"|"] = "[[" + newPathNoExt + "|"
-		replacements["[["+oldPathNoExt+"#"] = "[[" + newPathNoExt + "#"
-	}
-
-	// 3. Markdown 链接（多种格式）
-	oldMd := AddMdSuffix(oldNormalized)
-	newMd := AddMdSuffix(newNormalized)
-
-	// 标准 Markdown 链接: [text](folder/note.md)
-	replacements["]("+oldMd+")"] = "](" + newMd + ")"
-	replacements["]("+oldPathNoExt+")"] = "](" + newPathNoExt + ")"
-
-	// 相对 Markdown 链接: [text](./folder/note.md)
-	replacements["](./"+oldMd+")"] = "](./" + newMd + ")"
-	replacements["](./"+oldPathNoExt+")"] = "](./" + newPathNoExt + ")"
-
-	return replacements
-}
-
-// ReplaceContent 批量替换 content 中的字符串，使用 replacements map 中的键值对。
-func ReplaceContent(content []byte, replacements map[string]string) []byte {
-	for o, n := range replacements {
-		content = bytes.ReplaceAll(content, []byte(o), []byte(n))
-	}
-	return content
-}
-
-// ReplaceContentSkippingFencedCode 批量替换 Markdown 内容，但跳过 ``` 或 ~~~ 包裹的代码块。
-// 这不能替代完整 Markdown parser，但能避免 move 命令修改代码示例中的链接文本，
-// 对当前 CLI 的依赖体积和行为稳定性是更务实的折中。
-func ReplaceContentSkippingFencedCode(content []byte, replacements map[string]string) []byte {
-	lines := bytes.SplitAfter(content, []byte("\n"))
-	inFence := false
-	for i, line := range lines {
-		trimmed := bytes.TrimSpace(line)
-		if bytes.HasPrefix(trimmed, []byte("```")) || bytes.HasPrefix(trimmed, []byte("~~~")) {
-			inFence = !inFence
-			continue
-		}
-		if inFence {
-			continue
-		}
-		lines[i] = ReplaceContent(line, replacements)
-	}
-	return bytes.Join(lines, nil)
 }
 
 // IsExcluded 判断 relPath（相对于 vault 根目录的正斜杠路径）是否匹配任何排除规则。
